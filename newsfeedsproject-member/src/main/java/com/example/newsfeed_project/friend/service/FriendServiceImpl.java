@@ -1,23 +1,12 @@
 package com.example.newsfeed_project.friend.service;
 
-import com.example.newsfeed_project.config.PasswordEncoder;
-import com.example.newsfeed_project.friend.dto.FriendDto;
 import com.example.newsfeed_project.friend.entity.Friend;
 import com.example.newsfeed_project.friend.exception.NotFoundEntityException;
 import com.example.newsfeed_project.friend.repository.FriendRepository;
-import com.example.newsfeed_project.friend.entity.Friend;
 import com.example.newsfeed_project.member.entity.Member;
 import com.example.newsfeed_project.member.repository.MemberRepository;
-import org.springframework.data.domain.Page;
-import com.example.newsfeed_project.friend.exception.NotFoundEntityException;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 import static com.example.newsfeed_project.friend.exception.ExceptionCode.*;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 
 public class FriendServiceImpl {
