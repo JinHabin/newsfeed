@@ -6,9 +6,6 @@ import com.example.newsfeed_project.member.repository.MemberRepository;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
 @Entity
 @Getter
 @NoArgsConstructor
