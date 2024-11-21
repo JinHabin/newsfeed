@@ -1,6 +1,7 @@
 package com.example.newsfeed_project.member.dto;
 
 import com.example.newsfeed_project.member.entity.Member;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,12 +15,25 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class MemberDto {
     private Long id;
+
+    @NotBlank(message = "이름은 필수 값 입니다.")
     private String name;
+
+    @NotBlank(message = "이메일은 필수 값 입니다.")
     private String email;
+
+    @NotBlank(message = "비밀번호은 필수 값 입니다.")
     private String password;
+
+    @NotBlank(message = "핸드폰 번호는 필수 값 입니다.")
     private String phoneNumber;
+
+    @NotBlank(message = "주소는 필수 값 입니다.")
     private String address;
+
+    @NotBlank(message = "나이는 필수 값 입니다.")
     private int age;
+
     private String image;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;

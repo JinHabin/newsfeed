@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LikeResponseDto {
 
+  // 좋아요의 생성 / 취소를 전해주는 메서드
   private String message;
 
 }

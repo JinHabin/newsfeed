@@ -21,7 +21,7 @@ public interface NewsfeedLikeRepository extends JpaRepository<NewsfeedLike, Long
       + "WHERE n.newsfeed_id = :newsfeedId AND n.member_id = :memberId", nativeQuery = true)
   NewsfeedLike findByNewsfeedIdAndMemberId(@Param("newsfeedId") Long newsfeedId,@Param("memberId") Long memberId);
 
-  List<NewsfeedLike> findByNewsfeedId(Long id);
+  long countByNewsfeedId(Long id);
 
   void deleteByNewsfeedId(Long id);
 }

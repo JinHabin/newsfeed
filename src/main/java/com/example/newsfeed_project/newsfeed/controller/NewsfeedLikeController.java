@@ -21,6 +21,7 @@ public class NewsfeedLikeController {
 
   private final NewsfeedLikeService newsfeedLikeService;
 
+  //뉴스피드에서 좋아요를 누름
   @PutMapping("/{newsfeedId}")
   public ResponseEntity<LikeResponseDto> addLike(
       @PathVariable long newsfeedId,
@@ -31,6 +32,7 @@ public class NewsfeedLikeController {
     return new ResponseEntity<>(likeResPonseDto, HttpStatus.OK);
   }
 
+  //뉴스피드에서 좋아요 취소
   @DeleteMapping("/{newsfeedId}")
   public ResponseEntity<LikeResponseDto> delLike(
       @PathVariable long newsfeedId,
@@ -40,5 +42,4 @@ public class NewsfeedLikeController {
     LikeResponseDto likeResPonseDto = newsfeedLikeService.delLike(email, newsfeedId);
     return new ResponseEntity<>(likeResPonseDto, HttpStatus.OK);
   }
-
 }

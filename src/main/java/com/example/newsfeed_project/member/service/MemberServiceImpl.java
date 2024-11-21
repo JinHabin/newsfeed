@@ -1,12 +1,21 @@
 package com.example.newsfeed_project.member.service;
 
+import static com.example.newsfeed_project.exception.ErrorCode.CONFILX;
+import static com.example.newsfeed_project.exception.ErrorCode.EMAIL_EXIST;
+import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_EMAIL;
+import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_MEMBER;
+import static com.example.newsfeed_project.exception.ErrorCode.SAME_PASSWORD;
+import static com.example.newsfeed_project.exception.ErrorCode.WRONG_PASSWORD;
 import com.example.newsfeed_project.config.PasswordEncoder;
+import com.example.newsfeed_project.exception.CustomMessageOfException;
+import com.example.newsfeed_project.exception.DuplicatedException;
+import com.example.newsfeed_project.exception.InvalidInputException;
+import com.example.newsfeed_project.exception.NotFoundException;
 import com.example.newsfeed_project.member.dto.MemberDto;
 import com.example.newsfeed_project.member.entity.Member;
 import com.example.newsfeed_project.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +38,8 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public MemberDto createMember(MemberDto memberDto) {
         if (memberRepository.findByEmail(memberDto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+            throw new DuplicatedException(EMAIL_EXIST);
+//            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
 
         memberDto = encryptedPassword(memberDto);
@@ -43,7 +53,7 @@ public class MemberServiceImpl implements MemberService {
     public MemberDto updateMember(Long id, String password, MemberDto memberDto) {
         Member findMemberId = validateId(id);
         if (!passwordEncoder.matches(password, findMemberId.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new InvalidInputException(WRONG_PASSWORD);
         }
 
         findMemberId.updatedMember(memberDto);
@@ -52,6 +62,7 @@ public class MemberServiceImpl implements MemberService {
             Member updatedMember = memberRepository.save(findMemberId);
             return MemberDto.toDto(updatedMember);
         } catch (OptimisticLockingFailureException e) {
+//            throw new CustomMessageOfException(CONFILX);
             throw new RuntimeException("충돌이 발생했습니다. 다시 시도하세요");
         }
     }
@@ -84,7 +95,8 @@ public class MemberServiceImpl implements MemberService {
         Member member = validateEmail(session.getAttribute("email").toString());
 
         if (!passwordEncoder.matches(oldPassword, member.getPassword())) {
-            throw new IllegalArgumentException("Old password and new password do not match");
+            throw new InvalidInputException(SAME_PASSWORD);
+//            throw new IllegalArgumentException("Old password and new password do not match");
         }
 
         String encodedPassword = passwordEncoder.encode(newPassword);
@@ -111,12 +123,15 @@ public class MemberServiceImpl implements MemberService {
 
     public Member validateId(Long id) {
         return memberRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_MEMBER));
+//                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
     }
 
     public Member validateEmail(String email) {
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Member email not found"));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_EMAIL));
+        //NOT_FOUND_MEMBER로 도 가능할 것 같다.
+//                .orElseThrow(() -> new IllegalArgumentException("Member email not found"));
         return member;
     }
 

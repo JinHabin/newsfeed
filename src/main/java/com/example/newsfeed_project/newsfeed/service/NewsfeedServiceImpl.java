@@ -1,20 +1,18 @@
 package com.example.newsfeed_project.newsfeed.service;
 
-import static com.example.newsfeed_project.exception.ErrorCode.NO_AUTHOR;
-
-import com.example.newsfeed_project.exception.AuthorException;
-import com.example.newsfeed_project.member.dto.MemberDto;
+import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_NEWSFEED;
+import static com.example.newsfeed_project.exception.ErrorCode.NO_AUTHOR_CHANGE;
+import com.example.newsfeed_project.exception.CustomMessageOfException;
+import com.example.newsfeed_project.exception.NotFoundException;
 import com.example.newsfeed_project.member.entity.Member;
-import com.example.newsfeed_project.member.repository.MemberRepository;
 import com.example.newsfeed_project.member.service.MemberService;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedRequestDto;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedResponseDto;
 import com.example.newsfeed_project.newsfeed.entity.Newsfeed;
-import com.example.newsfeed_project.newsfeed.entity.NewsfeedLike;
 import com.example.newsfeed_project.newsfeed.repository.NewsfeedLikeRepository;
 import com.example.newsfeed_project.newsfeed.repository.NewsfeedRepository;
 import jakarta.servlet.http.HttpSession;
-import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -36,14 +34,18 @@ public class NewsfeedServiceImpl implements NewsfeedService{
     Newsfeed newsfeed = new Newsfeed(dto.getImage(), dto.getTitle(), dto.getContent());
     newsfeed.setMember(member);
     newsfeedRepository.save(newsfeed);
-    return new NewsfeedResponseDto(newsfeed.getFeedImage(), newsfeed.getTitle(), newsfeed.getContent(), newsfeed.getUpdatedAt());
+    long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
+    return new NewsfeedResponseDto(newsfeed.getFeedImage(), newsfeed.getTitle(), newsfeed.getContent(), like , newsfeed.getUpdatedAt());
   }
 
   @Override
   public List<NewsfeedResponseDto> findAll(Pageable pageable) {
     return newsfeedRepository.findAll(pageable)
         .stream()
-        .map(NewsfeedResponseDto::toDto)
+        .map(newsfeed -> {
+          long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
+          return NewsfeedResponseDto.toDto(newsfeed, like);
+        })
         .toList();
   }
 
@@ -54,7 +56,8 @@ public class NewsfeedServiceImpl implements NewsfeedService{
     Newsfeed newsfeed = findNewsfeedByIdOrElseThrow(id);
     checkEmail(email, newsfeed);
     newsfeed.updateNewsfeed(dto);
-    return new NewsfeedResponseDto(newsfeed.getFeedImage(), newsfeed.getTitle(), newsfeed.getContent(), newsfeed.getUpdatedAt());
+    long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
+    return new NewsfeedResponseDto(newsfeed.getFeedImage(), newsfeed.getTitle(), newsfeed.getContent(), like, newsfeed.getUpdatedAt());
   }
 
   @Transactional
@@ -70,20 +73,24 @@ public class NewsfeedServiceImpl implements NewsfeedService{
   @Override
   public Newsfeed findNewsfeedByIdOrElseThrow(Long id) {
     return newsfeedRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("뉴스피드 아이디가 없습니다."));
+        .orElseThrow(() -> new NotFoundException(NOT_FOUND_NEWSFEED));
   }
 
   @Override
   public List<NewsfeedResponseDto> findAllOrderByLikes(Pageable pageable) {
-    return newsfeedRepository.findAllOrderByLikes(pageable)
+    return newsfeedRepository.findAll(pageable)
         .stream()
-        .map(NewsfeedResponseDto::toDto)
+        .map(newsfeed -> {
+          long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
+          return NewsfeedResponseDto.toDto(newsfeed, like);
+        })
+        .sorted(Comparator.comparing(NewsfeedResponseDto::getLike).reversed())
         .toList();
   }
 
   private void checkEmail(String email, Newsfeed newsfeed) {
     if(!newsfeed.getMember().getEmail().equals(email)) {
-      throw new AuthorException(NO_AUTHOR);
+      throw new CustomMessageOfException(NO_AUTHOR_CHANGE);
     }
   }
 

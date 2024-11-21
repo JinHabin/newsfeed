@@ -1,5 +1,8 @@
 package com.example.newsfeed_project.member.controller;
 
+import static com.example.newsfeed_project.exception.ErrorCode.NO_AUTHOR_PROFILE;
+
+import com.example.newsfeed_project.exception.CustomMessageOfException;
 import com.example.newsfeed_project.member.dto.MemberDto;
 import com.example.newsfeed_project.member.dto.MemberUpdateResponseDto;
 import com.example.newsfeed_project.member.dto.PasswordRequestDto;
@@ -49,7 +52,8 @@ public class MemberController {
         String sessionEmail = SessionUtil.validateSession(request.getSession(false));
 
         if (!sessionEmail.equals(email)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("권한이 없습니다.");
+            throw new CustomMessageOfException(NO_AUTHOR_PROFILE);
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("권한이 없습니다.");
         }
 
         MemberDto memberByEmail = memberService.getMemberByEmail(email);

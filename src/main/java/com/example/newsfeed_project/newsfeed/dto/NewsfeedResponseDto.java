@@ -17,15 +17,17 @@ public class NewsfeedResponseDto {
 
   private String content;
 
+  private long like;
+
   private LocalDateTime updatedAt;
 
-  public static NewsfeedResponseDto toDto(Newsfeed newsfeed) {
+  public static NewsfeedResponseDto toDto(Newsfeed newsfeed, long like) {
     return new NewsfeedResponseDto(
         newsfeed.getFeedImage(),
         newsfeed.getTitle(),
         newsfeed.getContent(),
+        like,
         newsfeed.getUpdatedAt()
     );
   }
-
 }
