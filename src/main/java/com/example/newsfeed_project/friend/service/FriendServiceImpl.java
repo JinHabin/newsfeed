@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -37,21 +38,10 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional
     public void sendFriendRequest(FriendDto friendDto, String loggedInUserEmail) {
-
-        if (loggedInUserEmail == null) {
-            throw new IllegalArgumentException("로그인된 사용자 정보가 누락되었습니다.");
-        }
-
-        // 요청 및 응답 친구 ID로 멤버 조회
         Member requestFriend = memberRepository.findByEmail(loggedInUserEmail)
                 .orElseThrow(() -> new IllegalArgumentException("로그인된 사용자를 찾을 수 없습니다."));
-
         Member responseFriend = memberRepository.findById(friendDto.getResponseFriendId())
-                .orElseThrow(() -> new IllegalArgumentException("Response friend not found."));
-
-        if (!requestFriend.getId().equals(friendDto.getRequestFriendId())) {
-            throw new IllegalArgumentException("로그인된 사용자와 요청자가 일치하지 않습니다.");
-        }
+                .orElseThrow(() -> new IllegalArgumentException("응답 사용자를 찾을 수 없습니다."));
 
         if (requestFriend.getId().equals(responseFriend.getId())) {
             throw new IllegalArgumentException("자기 자신에게 친구 요청을 보낼 수 없습니다.");
@@ -61,20 +51,8 @@ public class FriendServiceImpl implements FriendService {
 
         if (existingRequest.isPresent()) {
             Friend friend = existingRequest.get();
-            if ("REJECTED".equals(friend.getStatus())) {
-                friend.setStatus("PENDING");
-                friend.setUpdatedAt(LocalDateTime.now());
-                friendRepository.save(friend); // 변경 사항 저장
-                log.info("거부된 요청을 새로 보냄: RequestFriendId={}, ResponseFriendId={}",
-                        requestFriend.getId(), responseFriend.getId());
-                return;
-            }
-            if ("APPROVED".equals(friend.getStatus())) {
-                throw new IllegalArgumentException("이미 친구 상태입니다.");
-            }
-            if ("PENDING".equals(friend.getStatus())) {
-                throw new IllegalArgumentException("이미 친구 요청을 보냈습니다.");
-            }
+            handleExistingRequest(friend);
+            return;
         }
 
         Friend friend = Friend.builder()
@@ -88,99 +66,113 @@ public class FriendServiceImpl implements FriendService {
                 requestFriend.getId(), responseFriend.getId());
     }
 
-    @Override
+
     @Transactional
-    public FriendDto acceptFriendRequest(Long requestId, boolean isApproved, String loggedInUserEmail) {
-        // 요청된 친구 데이터를 조회 (상태와 ID로 검색)
-        Friend friendRequest = friendRepository.findByIdAndStatus(requestId, "PENDING")
+    @Override
+    public void acceptFriendRequest(Long requestId, Long responseFriendId, boolean isApproved, String loggedInUserEmail) {
+        // 현재 로그인된 사용자를 조회
+        Member loggedInUser = memberRepository.findByEmail(loggedInUserEmail)
+                .orElseThrow(() -> new IllegalArgumentException("로그인된 사용자를 찾을 수 없습니다."));
+
+        // 요청 ID와 응답 친구 ID로 친구 요청을 조회
+        Friend friendRequest = friendRepository.findByRequestFriendIdAndResponseFriendId(requestId, responseFriendId)
                 .orElseThrow(() -> new IllegalArgumentException("친구 요청을 찾을 수 없습니다."));
 
-        // 현재 로그인한 사용자가 응답자인지 확인
-        if (!friendRequest.getResponseFriend().getEmail().equals(loggedInUserEmail)) {
-            throw new IllegalArgumentException("승인/거부 권한이 없습니다.");
+        // 현재 로그인된 사용자가 요청의 responseFriend인지 확인
+        if (!friendRequest.getResponseFriend().getId().equals(loggedInUser.getId())) {
+            throw new IllegalArgumentException("이 친구 요청을 승인하거나 거절할 권한이 없습니다.");
         }
 
+        // 승인 또는 거부 처리
         if (isApproved) {
-            // 승인 처리
-            friendRequest.approve();
+            friendRequest.setStatus("APPROVED");
+            friendRequest.setUpdatedAt(LocalDateTime.now());
             friendRepository.save(friendRequest);
-            log.info("친구 요청 승인됨: RequestId={}, ResponseFriendEmail={}", requestId, loggedInUserEmail);
-            return new FriendDto(friendRequest);
+            log.info("Friend request approved for requestId={}, responseFriendId={}", requestId, responseFriendId);
         } else {
-            // 거부 처리 (상태를 REJECTED로 변경)
             friendRequest.setStatus("REJECTED");
+            friendRequest.setUpdatedAt(LocalDateTime.now());
             friendRepository.save(friendRequest);
-            log.info("친구 요청 거부됨: RequestId={}, ResponseFriendEmail={}", requestId, loggedInUserEmail);
-            return FriendDto.builder()
-                    .id(requestId)
-                    .name("요청 거부됨")
-                    .build();
+            log.info("Friend request rejected for requestId={}, responseFriendId={}", requestId, responseFriendId);
         }
     }
 
-//    public Page<FriendDto> getFriendList(int page, int size, Member member) {
-//        // 페이지 크기를 10으로 제한
-//        size = Math.min(size, 10);
-//        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-//
-//        // 승인된 친구 목록 조회
-//        Page<Friend> friends = friendRepository.findByRequestFriendIdAndFriendApproval(member.getId(), true, pageable);
-//
-//        // FriendDto 리스트 변환
-//        List<FriendDto> friendDtos = friends.stream()
-//                .map(friend -> {
-//                    // 요청자와 응답자 중 상대방의 정보를 가져오기
-//                    Member relatedUser = member.getId().equals(friend.getRequestFriend().getId())
-//                            ? friend.getResponseFriend()
-//                            : friend.getRequestFriend();
-//
-//                    return FriendDto.builder()
-//                            .id(friend.getId())
-//                            .requestFriendId(friend.getRequestFriend().getId())
-//                            .responseFriendId(friend.getResponseFriend().getId())
-//                            .image(relatedUser.getImage())
-//                            .email(relatedUser.getEmail())
-//                            .name(relatedUser.getName())
-//                            .isApproval(friend.isApproval())
-//                            .build();
-//                })
-//                .toList();
-//
-//        // Page 객체 생성
-//        return new PageImpl<>(friendDtos, pageable, friends.getTotalElements());
-//    }
+    @Transactional(readOnly = true)
+    public Page<FriendDto> getApprovedFriendList(int page, int size, String email) {
+        // 페이지 크기를 10으로 제한
+        size = Math.min(size, 10);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+
+        // 승인된 친구 목록 조회
+        Page<Friend> friends = friendRepository.findApprovedFriendsByEmail(email, "APPROVED", pageable);
+
+        // FriendDto 리스트 변환
+        List<FriendDto> friendDtos = new ArrayList<>();
+        for (Friend friend : friends.getContent()) {
+            Member relatedUser = friend.getRequestFriend(); // 기본적으로 요청자 정보 사용
+            if (friend.getResponseFriend() != null) {
+                relatedUser = friend.getResponseFriend(); // 응답자 정보로 교체
+            }
+
+            FriendDto friendDto = FriendDto.builder()
+                    .id(friend.getId())
+                    .requestFriendId(friend.getRequestFriend().getId())
+                    .responseFriendId(friend.getResponseFriend().getId())
+                    .build();
+
+            friendDtos.add(friendDto);
+        }
+
+        // Page 객체 생성
+        return new PageImpl<>(friendDtos, pageable, friends.getTotalElements());
+    }
+
 
     // 친구 삭제
-    public void deleteFriend(Long requestId, MemberDto memberDto) {
-        Friend friend = friendRepository.findById(requestId)
+    @Override
+    @Transactional
+    public void deleteFriendByResponseId(Long requestId, Long responseId) {
+        // 친구 관계 조회 (요청 ID와 응답 ID로)
+        Friend friend = friendRepository.findByRequestFriendIdAndResponseFriendId(requestId, responseId)
                 .orElseThrow(() -> new IllegalArgumentException("친구 요청을 찾을 수 없습니다."));
 
-        // 삭제 요청자가 해당 친구 관계의 소유자인지 확인
-        if (!friend.getMember().getId().equals(memberDto.getId())) {
-            throw new IllegalArgumentException("해당 친구 관계를 삭제할 권한이 없습니다.");
-        }
-
-        // 비밀번호 검증
-        if (!passwordEncoder.matches(memberDto.getPassword(), friend.getMember().getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-
+        // 친구 관계 삭제
         friendRepository.delete(friend);
     }
 
-    private boolean determineApprovalLogic(Member requestFriend, Member responseFriend) {
-        // 자기 자신에게 친구 요청을 보낼 수 없음
-        if (requestFriend.getId().equals(responseFriend.getId())) {
-            throw new IllegalArgumentException("자기 자신에게 친구 요청을 보낼 수 없습니다.");
-        }
 
-        // 이미 친구 관계인지 확인
-        boolean alreadyFriends = friendRepository.existsByRequestFriendAndResponseFriend(requestFriend, responseFriend);
-        if (alreadyFriends) {
-            throw new IllegalArgumentException("이미 친구 관계입니다.");
-        }
+    private void handleExistingRequest(Friend friend) {
+        switch (friend.getStatus()) {
+            case "REJECTED":
+                friend.setStatus("PENDING");
+                friend.setUpdatedAt(LocalDateTime.now());
+                friendRepository.save(friend);
+                log.info("거부된 요청을 새로 보냄: RequestFriendId={}, ResponseFriendId={}",
+                        friend.getRequestFriend().getId(), friend.getResponseFriend().getId());
+                break;
 
-        // 기본적으로 승인 상태 반환
-        return true; // 변경 필요
+            case "APPROVED":
+                throw new IllegalArgumentException("이미 친구 상태입니다.");
+            case "PENDING":
+                throw new IllegalArgumentException("이미 친구 요청을 보냈습니다.");
+            default:
+                throw new IllegalStateException("지원하지 않는 요청 상태입니다.");
+        }
     }
+
+//    private boolean determineApprovalLogic(Member requestFriend, Member responseFriend) {
+//        // 자기 자신에게 친구 요청을 보낼 수 없음
+//        if (requestFriend.getId().equals(responseFriend.getId())) {
+//            throw new IllegalArgumentException("자기 자신에게 친구 요청을 보낼 수 없습니다.");
+//        }
+//
+//        // 이미 친구 관계인지 확인
+//        boolean alreadyFriends = friendRepository.existsByRequestFriendAndResponseFriend(requestFriend, responseFriend);
+//        if (alreadyFriends) {
+//            throw new IllegalArgumentException("이미 친구 관계입니다.");
+//        }
+//
+//        // 기본적으로 승인 상태 반환
+//        return true; // 변경 필요
+//    }
 }
