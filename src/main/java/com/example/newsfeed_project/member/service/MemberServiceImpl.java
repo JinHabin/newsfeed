@@ -60,7 +60,6 @@ public class MemberServiceImpl implements MemberService {
             Member updatedMember = memberRepository.save(findMemberId);
             return MemberDto.toDto(updatedMember);
         } catch (OptimisticLockingFailureException e) {
-//            throw new CustomMessageOfException(CONFILX);
             throw new RuntimeException("충돌이 발생했습니다. 다시 시도하세요");
         }
     }

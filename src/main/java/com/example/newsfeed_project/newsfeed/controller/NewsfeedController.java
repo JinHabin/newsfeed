@@ -48,7 +48,7 @@ public class NewsfeedController {
   //전체 조회를 하는 메서드
   @GetMapping
   public ResponseEntity<List<NewsfeedResponseDto>> findAll(
-      @RequestParam @PageableDefault(size = 10, sort = "updatedAt", direction = Direction.DESC)
+      @PageableDefault(size = 10, sort = "updatedAt", direction = Direction.DESC)
       Pageable pageable
   ){
     List<NewsfeedResponseDto> list = newsfeedService.findAll(pageable);
@@ -58,7 +58,7 @@ public class NewsfeedController {
   //좋아요를 기준으로 정렬하는 메서드
   @GetMapping("/likes")
   public ResponseEntity<List<NewsfeedResponseDto>> findAllOrderByLikes(
-      @RequestParam @PageableDefault(size = 3, sort = "updated_at", direction = Direction.DESC)
+      @PageableDefault(size = 3, sort = "updated_at", direction = Direction.DESC)
       Pageable pageable
   ){
     List<NewsfeedResponseDto> list = newsfeedService.findAllOrderByLikes(pageable);

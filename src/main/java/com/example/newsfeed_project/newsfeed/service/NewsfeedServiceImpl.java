@@ -1,6 +1,7 @@
 package com.example.newsfeed_project.newsfeed.service;
 
 import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_NEWSFEED;
+import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_NEWSFEED_LIKE;
 import static com.example.newsfeed_project.exception.ErrorCode.NO_AUTHOR_CHANGE;
 import com.example.newsfeed_project.exception.NoAuthorizedException;
 import com.example.newsfeed_project.exception.NotFoundException;
@@ -9,6 +10,7 @@ import com.example.newsfeed_project.member.service.MemberService;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedRequestDto;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedResponseDto;
 import com.example.newsfeed_project.newsfeed.entity.Newsfeed;
+import com.example.newsfeed_project.newsfeed.entity.NewsfeedLike;
 import com.example.newsfeed_project.newsfeed.repository.NewsfeedLikeRepository;
 import com.example.newsfeed_project.newsfeed.repository.NewsfeedRepository;
 import jakarta.servlet.http.HttpSession;
@@ -66,7 +68,7 @@ public class NewsfeedServiceImpl implements NewsfeedService{
     String email = (String) session.getAttribute("email");
     Newsfeed newsfeed = findNewsfeedByIdOrElseThrow(id);
     checkEmail(email, newsfeed);
-    newsfeedLikeRepository.deleteByNewsfeedId(id);
+    deleteNewsfeedLike(id);
     newsfeedRepository.delete(newsfeed);
   }
 
@@ -91,6 +93,12 @@ public class NewsfeedServiceImpl implements NewsfeedService{
   private void checkEmail(String email, Newsfeed newsfeed) {
     if(!newsfeed.getMember().getEmail().equals(email)) {
       throw new NoAuthorizedException(NO_AUTHOR_CHANGE);
+    }
+  }
+  private void deleteNewsfeedLike(long newsfeedId) {
+    List<NewsfeedLike> newsfeedLike = newsfeedLikeRepository.findByNewsfeedId(newsfeedId);
+    if(!newsfeedLike.isEmpty()) {
+      newsfeedLikeRepository.deleteByNewsfeedId(newsfeedId);
     }
   }
 

@@ -19,4 +19,6 @@ public interface NewsfeedLikeRepository extends JpaRepository<NewsfeedLike, Long
   long countByNewsfeedId(Long id);
 
   void deleteByNewsfeedId(Long id);
+
+  List<NewsfeedLike> findByNewsfeedId(long newsfeedId);
 }
