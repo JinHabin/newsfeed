@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class FriendResponseDto {
-    private Long id;
+    private Long requestFriendId;
+    private Long responseFriendId;
     private boolean friendApproval;
 }
