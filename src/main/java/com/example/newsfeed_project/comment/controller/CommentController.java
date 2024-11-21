@@ -36,10 +36,10 @@ public class CommentController {
     //댓글 전체 조회
     @GetMapping
     public ResponseEntity<List<CommentDto>> findAll(
-            @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.DESC)
+            @PageableDefault(size = 3, sort = "updatedAt", direction = Sort.Direction.DESC)
             Pageable pageable
     ) {
-        List<CommentDto> commentDtoList = commentService.findAll();
+        List<CommentDto> commentDtoList = commentService.findAll(pageable);
 
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
@@ -49,7 +49,6 @@ public class CommentController {
     public ResponseEntity<CommentDto> findById(
             @PathVariable Long id) {
         CommentDto commentDto = commentService.findById(id);
-
         return new ResponseEntity<>(commentDto, HttpStatus.OK);
     }
 

@@ -6,6 +6,7 @@ import com.example.newsfeed_project.comment.entity.Comment;
 import com.example.newsfeed_project.comment.repository.CommentRepository;
 import com.example.newsfeed_project.member.entity.Member;
 import com.example.newsfeed_project.member.service.MemberService;
+import com.example.newsfeed_project.newsfeed.dto.NewsfeedResponseDto;
 import com.example.newsfeed_project.newsfeed.entity.Newsfeed;
 import com.example.newsfeed_project.newsfeed.service.NewsfeedService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,8 +44,8 @@ public class CommentService {
     }
 
     //댓글 전체 조회
-    public List<CommentDto> findAll() {
-        return commentRepository.findAll().stream().map(CommentDto::toDto).toList();
+    public List<CommentDto> findAll(Pageable pageable) {
+        return commentRepository.findAll(pageable).stream().map(CommentDto::toDto).toList();
     }
 
     //댓글 단건 조회
@@ -70,5 +71,9 @@ public class CommentService {
         commentRepository.deleteById(id);
     }
 
+    public Comment findCommentByIdOrElseThrow(Long id) {
+        return commentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("댓글 아이디가 없습니다."));
+    }
 
 }
