@@ -44,15 +44,15 @@ public class CommentService {
     }
 
     //댓글 전체 조회
-    public List<CommentDto> findAll(Pageable pageable) {
-        return commentRepository.findAll(pageable).stream().map(CommentDto::toDto).toList();
+    public List<CommentDto> findAll(Long newsfeedId,  Pageable pageable) {
+        return commentRepository.findByFeedId(newsfeedId,pageable).stream().map(CommentDto::toDto).toList();
     }
 
     //댓글 단건 조회
     public CommentDto findById(Long id) {
         Comment findId = commentRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("댓글을 찾지 못했습니다."));
 
-        return new CommentDto(findId.getId(), findId.getContents(), findId.getCreatedAt());
+        return new CommentDto(findId.getContents(), findId.getCreatedAt());
     }
 
     //댓글 수정
@@ -73,7 +73,6 @@ public class CommentService {
 
     public Comment findCommentByIdOrElseThrow(Long id) {
         return commentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("댓글 아이디가 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("댓글 찾지 못했습니다."));
     }
-
 }

@@ -34,7 +34,6 @@ public class Comment extends BaseEntity {
 
     public static Comment toEntity(CommentDto dto) {
         return Comment.builder()
-                .id(dto.getId())
                 .contents(dto.getContents())
                 .build();
     }

@@ -5,6 +5,7 @@ import com.example.newsfeed_project.comment.dto.UpdateCommentResponseDto;
 import com.example.newsfeed_project.comment.service.CommentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,7 +27,7 @@ public class CommentController {
     @PostMapping("/{newsfeedId}")
     public ResponseEntity<CommentDto> createComment(
             @PathVariable Long newsfeedId,
-            @RequestBody CommentDto dto,
+            @Valid @RequestBody CommentDto dto,
             HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         CommentDto commentDto = commentService.createComment(newsfeedId, dto, session);
@@ -34,12 +35,13 @@ public class CommentController {
     }
 
     //댓글 전체 조회
-    @GetMapping
+    @GetMapping("/newsfeed/{newsfeedId}")
     public ResponseEntity<List<CommentDto>> findAll(
-            @PageableDefault(size = 3, sort = "updatedAt", direction = Sort.Direction.DESC)
+            @PathVariable Long newsfeedId,
+            @PageableDefault(size = 10,sort = "updatedAt", direction = Sort.Direction.DESC)
             Pageable pageable
     ) {
-        List<CommentDto> commentDtoList = commentService.findAll(pageable);
+        List<CommentDto> commentDtoList = commentService.findAll(newsfeedId, pageable);
 
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
@@ -54,7 +56,7 @@ public class CommentController {
 
     //댓글 수정
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateComment(@PathVariable Long id, @RequestBody CommentDto dto) {
+    public ResponseEntity<?> updateComment(@PathVariable Long id, @Valid @RequestBody CommentDto dto) {
         CommentDto commentDto = commentService.updateComment(id, dto);
         UpdateCommentResponseDto responseDto = UpdateCommentResponseDto.toResponseDto(commentDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -69,6 +71,4 @@ public class CommentController {
 
         return ResponseEntity.status(HttpStatus.OK).body("댓글 삭제가 되었습니다.");
     }
-
-
 }
