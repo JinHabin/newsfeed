@@ -73,4 +73,10 @@ public class MemberController {
         memberService.deleteMemberById(existingMember.getId());
         return ResponseEntity.status(HttpStatus.OK).body("회원 삭제가 완료되었습니다.");
     }
+
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<String> restoreMember(@PathVariable Long id) {
+        memberService.restoreMember(id);
+        return ResponseEntity.ok("회원이 복구되었습니다.");
+    }
 }
