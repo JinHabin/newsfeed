@@ -38,25 +38,21 @@ public enum ErrorCode {
   //중복된 이메일로 가일 할 때 출력하는 오류 메시지
   EMAIL_EXIST("중복된 아이디 입니다.", HttpStatus.BAD_REQUEST),
 
-
-
-  //로그인
-  //로그인 실패
-  LOGIN_FAIL("로그인에 실패했습니다.", HttpStatus.BAD_REQUEST),
-
+  // NoAuthorizedException
   //로그인이 안 되었을 떄 출력하는 오류 메시지
   NO_SESSION("로그인이 필요합니다.", HttpStatus.UNAUTHORIZED),
-
-  //이메일의 형식이 틀렸을 때 출력하는 오류 메시지
-  EMAIL_VALIDATION("이메일의 형식이 틀렸습니다.", HttpStatus.BAD_REQUEST),
-  //비밀번호의 형식이 틀렸을 때 출력하는 오류 메시지
-//  PASSWORD_VALIDATION("비밀번호의 형식이 틀렸습니다.", HttpStatus.BAD_REQUEST),
-
   //권한이 없는 사용자가 수정, 삭제를 하려고 할 때
   NO_AUTHOR_CHANGE("수정, 삭제는 작성자만 할 수 있습니다.", HttpStatus.UNAUTHORIZED),
   //프로필 본인 조회
   NO_AUTHOR_PROFILE("프로필은 본인만 조회할 수 있습니다.", HttpStatus.UNAUTHORIZED),
 
+
+
+  //로그인
+  //로그인 실패
+  LOGIN_FAIL("로그인에 실패했습니다.", HttpStatus.BAD_REQUEST),
+  //비밀번호의 형식이 틀렸을 때 출력하는 오류 메시지
+//  PASSWORD_VALIDATION("비밀번호의 형식이 틀렸습니다.", HttpStatus.BAD_REQUEST),
   //충돌오류? MemberServiceImpl #60
   CONFILX("충돌이 발생했습니다.", HttpStatus.BAD_REQUEST);
 

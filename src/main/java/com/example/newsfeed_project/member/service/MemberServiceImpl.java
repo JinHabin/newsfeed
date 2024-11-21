@@ -1,13 +1,11 @@
 package com.example.newsfeed_project.member.service;
 
-import static com.example.newsfeed_project.exception.ErrorCode.CONFILX;
 import static com.example.newsfeed_project.exception.ErrorCode.EMAIL_EXIST;
 import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_EMAIL;
 import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_MEMBER;
 import static com.example.newsfeed_project.exception.ErrorCode.SAME_PASSWORD;
 import static com.example.newsfeed_project.exception.ErrorCode.WRONG_PASSWORD;
 import com.example.newsfeed_project.config.PasswordEncoder;
-import com.example.newsfeed_project.exception.CustomMessageOfException;
 import com.example.newsfeed_project.exception.DuplicatedException;
 import com.example.newsfeed_project.exception.InvalidInputException;
 import com.example.newsfeed_project.exception.NotFoundException;

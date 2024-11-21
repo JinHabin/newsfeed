@@ -1,8 +1,6 @@
 package com.example.newsfeed_project.util;
 
 import static com.example.newsfeed_project.exception.ErrorCode.SESSION_TIMEOUT;
-
-import com.example.newsfeed_project.exception.CustomMessageOfException;
 import com.example.newsfeed_project.exception.InternalServerException;
 import jakarta.servlet.http.HttpSession;
 

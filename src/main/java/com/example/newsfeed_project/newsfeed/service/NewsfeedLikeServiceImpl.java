@@ -2,8 +2,6 @@ package com.example.newsfeed_project.newsfeed.service;
 
 import static com.example.newsfeed_project.exception.ErrorCode.ALREADY_LIKED;
 import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_NEWSFEED_LIKE;
-
-import com.example.newsfeed_project.exception.CustomMessageOfException;
 import com.example.newsfeed_project.exception.DuplicatedException;
 import com.example.newsfeed_project.exception.NotFoundException;
 import com.example.newsfeed_project.member.entity.Member;
@@ -25,11 +23,17 @@ public class NewsfeedLikeServiceImpl implements NewsfeedLikeService {
 
   @Override
   public LikeResponseDto addLike(String email, long newsfeedId) {
-    NewsfeedLike newsfeedLike = checkAlreadyLike(email, newsfeedId);
-    newsfeedLikeRepository.save(newsfeedLike);
-    return new LikeResponseDto("좋아요 설정");
+//    NewsfeedLike newsfeedLike = checkAlreadyLike(email, newsfeedId);
+    NewsfeedLike newsfeedLike = checkLike(email, newsfeedId);
+    if(newsfeedLike.getId() > 0) {
+      newsfeedLikeRepository.delete(newsfeedLike);
+      return new LikeResponseDto("좋아요 해제");
+    }else{
+      newsfeedLikeRepository.save(newsfeedLike);
+      return new LikeResponseDto("좋아요 설정");
+    }
   }
-
+/*
   @Override
   public LikeResponseDto delLike(String email, long newsfeedId) {
     NewsfeedLike newsfeedLike = checkNoLike(email, newsfeedId);
@@ -42,7 +46,7 @@ public class NewsfeedLikeServiceImpl implements NewsfeedLikeService {
     Member member = memberService.validateEmail(email);
     Newsfeed newsfeed = newsfeedService.findNewsfeedByIdOrElseThrow(newsfeedId);
     NewsfeedLike newsfeedLike = newsfeedLikeRepository.findByNewsfeedIdAndMemberId(newsfeedId, member.getId());
-    if (newsfeedLike != null) {
+    if (newsfeedLike.getId() == 0) {
       throw new DuplicatedException(ALREADY_LIKED);
     }
     newsfeedLike = new NewsfeedLike();
@@ -58,6 +62,21 @@ public class NewsfeedLikeServiceImpl implements NewsfeedLikeService {
     NewsfeedLike newsfeedLike = newsfeedLikeRepository.findByNewsfeedIdAndMemberId(newsfeedId, memberId);
     if (newsfeedLike == null) {
       throw new NotFoundException(NOT_FOUND_NEWSFEED_LIKE);
+    }
+    return newsfeedLike;
+  }
+*/
+  private NewsfeedLike checkLike(String email, long newsfeedId) {
+    Member member = memberService.validateEmail(email);
+    Newsfeed newsfeed = newsfeedService.findNewsfeedByIdOrElseThrow(newsfeedId);
+    NewsfeedLike newsfeedLike = newsfeedLikeRepository.findByNewsfeedIdAndMemberId(newsfeedId, member.getId());
+    if(newsfeedLike != null) {
+      newsfeedLike.setMember(member);
+      newsfeedLike.setNewsfeed(newsfeed);
+    }else{
+      newsfeedLike = new NewsfeedLike();
+      newsfeedLike.setMember(member);
+      newsfeedLike.setNewsfeed(newsfeed);
     }
     return newsfeedLike;
   }

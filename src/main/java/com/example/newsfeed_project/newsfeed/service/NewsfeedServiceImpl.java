@@ -2,7 +2,7 @@ package com.example.newsfeed_project.newsfeed.service;
 
 import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_NEWSFEED;
 import static com.example.newsfeed_project.exception.ErrorCode.NO_AUTHOR_CHANGE;
-import com.example.newsfeed_project.exception.CustomMessageOfException;
+import com.example.newsfeed_project.exception.NoAuthorizedException;
 import com.example.newsfeed_project.exception.NotFoundException;
 import com.example.newsfeed_project.member.entity.Member;
 import com.example.newsfeed_project.member.service.MemberService;
@@ -90,7 +90,7 @@ public class NewsfeedServiceImpl implements NewsfeedService{
 
   private void checkEmail(String email, Newsfeed newsfeed) {
     if(!newsfeed.getMember().getEmail().equals(email)) {
-      throw new CustomMessageOfException(NO_AUTHOR_CHANGE);
+      throw new NoAuthorizedException(NO_AUTHOR_CHANGE);
     }
   }
 

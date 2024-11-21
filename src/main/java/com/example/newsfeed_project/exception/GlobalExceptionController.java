@@ -11,12 +11,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionController {
 
   //커스텀
-
-  @ExceptionHandler
-  public ResponseEntity<String> customMessageOfException(CustomMessageOfException e){
-    return new ResponseEntity<>(e.getErrorCode().getMessage(), e.getErrorCode().getHttpStatus());
-  }
-
   @ExceptionHandler
   public ResponseEntity<String> customMessageOfException(DuplicatedException e){
     return new ResponseEntity<>(e.getErrorCode().getMessage(), e.getErrorCode().getHttpStatus());

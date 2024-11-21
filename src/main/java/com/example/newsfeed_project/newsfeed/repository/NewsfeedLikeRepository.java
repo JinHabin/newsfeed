@@ -14,12 +14,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface NewsfeedLikeRepository extends JpaRepository<NewsfeedLike, Long> {
 
-//  Optional<NewsfeedLike> findByNewsfeedIdAndMemberId(Long newsfeedId, Long memberId);
-
-  @Query(value = "SELECT n.id, n.member_id, n.newsfeed_id "
-      + "FROM newsfeed_like n "
-      + "WHERE n.newsfeed_id = :newsfeedId AND n.member_id = :memberId", nativeQuery = true)
-  NewsfeedLike findByNewsfeedIdAndMemberId(@Param("newsfeedId") Long newsfeedId,@Param("memberId") Long memberId);
+  NewsfeedLike findByNewsfeedIdAndMemberId( Long newsfeedId, Long memberId);
 
   long countByNewsfeedId(Long id);
 
