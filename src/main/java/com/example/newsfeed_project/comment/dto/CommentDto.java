@@ -23,5 +23,4 @@ public class CommentDto {
                 .createdAt(LocalDateTime.now())
                 .build();
     }
-
 }

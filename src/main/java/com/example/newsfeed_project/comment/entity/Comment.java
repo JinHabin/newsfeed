@@ -5,6 +5,7 @@ import com.example.newsfeed_project.comment.dto.UpdateCommentResponseDto;
 import com.example.newsfeed_project.common.BaseEntity;
 import com.example.newsfeed_project.member.dto.MemberDto;
 import com.example.newsfeed_project.member.entity.Member;
+import com.example.newsfeed_project.newsfeed.entity.Newsfeed;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,9 +24,12 @@ public class Comment extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "member_id")
-    private Member memberId;
+    private Member member;
 
-    private Long feedId;
+    @ManyToOne
+    @JoinColumn(name = "newsfeed_id")
+    private Newsfeed feed;
+
     private String contents;
 
     public static Comment toEntity(CommentDto dto) {
@@ -33,6 +37,14 @@ public class Comment extends BaseEntity {
                 .id(dto.getId())
                 .contents(dto.getContents())
                 .build();
+    }
+
+    public void setMember(Member member) {
+        this.member = member;
+    }
+
+    public void setNewsFeed(Newsfeed feed) {
+        this.feed = feed;
     }
 
     public void updateComment(CommentDto dto) {
