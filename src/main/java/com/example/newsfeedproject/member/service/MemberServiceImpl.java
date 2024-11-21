@@ -91,6 +91,10 @@ public class MemberServiceImpl implements MemberService {
 //            throw new IllegalArgumentException("Old password and new password do not match");
         }
 
+        if (oldPassword.equals(newPassword)) {
+            throw new IllegalArgumentException("비밀번호가 동일합니다.");
+        }
+
         String encodedPassword = passwordEncoder.encode(newPassword);
         Member changePassword = member.withPassword(encodedPassword);
         changePassword = memberRepository.save(changePassword);
