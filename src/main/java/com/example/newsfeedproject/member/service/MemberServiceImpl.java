@@ -2,6 +2,9 @@ package com.example.newsfeedproject.member.service;
 
 
 import com.example.newsfeedproject.config.PasswordEncoder;
+import com.example.newsfeedproject.exception.DuplicatedException;
+import com.example.newsfeedproject.exception.InvalidInputException;
+import com.example.newsfeedproject.exception.NotFoundException;
 import com.example.newsfeedproject.member.dto.MemberDto;
 import com.example.newsfeedproject.member.entity.Member;
 import com.example.newsfeedproject.member.repository.MemberRepository;
@@ -10,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.example.newsfeedproject.exception.ErrorCode.*;
 
 @Slf4j
 @Service
@@ -27,7 +32,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public MemberDto createMember(MemberDto memberDto) {
         if (memberRepository.findByEmail(memberDto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+            throw new DuplicatedException(EMAIL_EXIST);
         }
 
         memberDto = encryptedPassword(memberDto);
@@ -41,7 +46,7 @@ public class MemberServiceImpl implements MemberService {
     public MemberDto updateMember(Long id, String password, MemberDto memberDto) {
         Member findMemberId = validateId(id);
         if (!passwordEncoder.matches(password, findMemberId.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new InvalidInputException(WRONG_PASSWORD);
         }
 
         findMemberId.updatedMember(memberDto);
@@ -82,7 +87,8 @@ public class MemberServiceImpl implements MemberService {
         Member member = validateEmail(session.getAttribute("email").toString());
 
         if (!passwordEncoder.matches(oldPassword, member.getPassword())) {
-            throw new IllegalArgumentException("Old password and new password do not match");
+            throw new InvalidInputException(SAME_PASSWORD);
+//            throw new IllegalArgumentException("Old password and new password do not match");
         }
 
         String encodedPassword = passwordEncoder.encode(newPassword);
@@ -109,12 +115,12 @@ public class MemberServiceImpl implements MemberService {
 
     public Member validateId(Long id) {
         return memberRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_MEMBER));
     }
 
     public Member validateEmail(String email) {
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Member email not found"));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_EMAIL));
         return member;
     }
 
