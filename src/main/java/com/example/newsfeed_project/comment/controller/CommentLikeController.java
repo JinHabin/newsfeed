@@ -23,7 +23,7 @@ public class CommentLikeController {
             HttpServletRequest request
     ) {
         String email = SessionUtil.validateSession(request.getSession());
-        CommentLikeResponseDto dto = commentLikeService.commentLike(email, commentId);
+        CommentLikeResponseDto dto = commentLikeService.commentLikeorDelLike(email, commentId);
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 }

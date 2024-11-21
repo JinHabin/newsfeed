@@ -19,30 +19,23 @@ public class CommentLikeService {
     private final CommentService commentService;
     private final CommentLikeRepository commentLikeRepository;
 
-    public CommentLikeResponseDto commentLike(String email, Long commentId) {
+    public CommentLikeResponseDto commentLikeorDelLike(String email, Long commentId) {
         Member member = memberService.validateEmail(email);
         Comment comment = commentService.findCommentByIdOrElseThrow(commentId);
+
         CommentLike commentLike = new CommentLike();
         commentLike.setMember(member);
         commentLike.setComment(comment);
 
+
         //이미 좋아요 했을 시
         if(commentLikeRepository.findByCommentId(commentId) != null) {
-            this.commentDelLike(email, commentId);
+            CommentLike commentDelLike = commentLikeRepository.findByCommentIdAndMemberId(commentId,member.getId());
+            commentLikeRepository.delete(commentDelLike);
             return new CommentLikeResponseDto("댓글 좋아요 해제");
         };
 
         commentLikeRepository.save(commentLike);
-
         return new CommentLikeResponseDto("댓글 좋아요");
-    }
-
-    public CommentLikeResponseDto commentDelLike(String email, Long commentId) {
-        Member member = memberService.validateEmail(email);
-        Comment comment = commentService.findCommentByIdOrElseThrow(commentId);
-        CommentLike commentLike = commentLikeRepository.findByCommentIdAndMemberId(commentId,member.getId());
-        commentLikeRepository.delete(commentLike);
-
-        return new CommentLikeResponseDto("댓글 좋아요 해제");
     }
 }
