@@ -39,10 +39,13 @@ public class Friend {
 
     // 상태 업데이트
     public void approve() {
+        this.friendApproval = true;
         this.status = "APPROVED";
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void reject() {
+        this.friendApproval = false;
         this.status = "REJECTED";
     }
 
