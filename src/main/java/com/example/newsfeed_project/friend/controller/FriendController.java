@@ -1,9 +1,11 @@
 package com.example.newsfeed_project.friend.controller;
 
-import com.example.newsfeed_project.friend.dto.FriendRequestDto;
-import com.example.newsfeed_project.friend.dto.FriendResponseDto;
+import com.example.newsfeed_project.friend.dto.FriendDto;
 import com.example.newsfeed_project.friend.service.FriendService;
-import jakarta.servlet.http.HttpServletRequest;
+import com.example.newsfeed_project.member.dto.MemberDto;
+import com.example.newsfeed_project.util.SessionUtil;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +16,10 @@ public class FriendController {
 
     private final FriendService friendService;
 
-    public FriendController(FriendService friendService) {this.friendService = friendService;}
+    public FriendController(FriendService friendService) {
+        this.friendService = friendService;
+    }
+
     /*
     //친구 리스트 조회
     @GetMapping()
@@ -27,24 +32,31 @@ public class FriendController {
     }
 */
     // 친구 요청 생성
-    @PostMapping
-    public ResponseEntity<Object> addFriend(@RequestBody FriendRequestDto friendRequestDto) {
-        FriendResponseDto response = friendService.addFriend(friendRequestDto);
-        return ResponseEntity.ok(response); // 요청 성공시 응답 반환
+    @PostMapping("/request")
+    public ResponseEntity<String> sendFriendRequest(@RequestBody FriendDto friendDto, HttpSession session) {
+        String loggedInUserEmail = SessionUtil.validateSession(session);
+        friendService.sendFriendRequest(friendDto, loggedInUserEmail);
+        return ResponseEntity.ok("친구 요청이 성공적으로 보내졌습니다.");
     }
-    //친구 승인
-    @PostMapping("/response/{requestId}")
-    public ResponseEntity<Object> acceptFriendApproval(@PathVariable Long requestId, @RequestParam boolean friendApproval) {
-        FriendResponseDto acceptRequest = friendService.acceptFriendApproval(requestId, friendApproval);
-        return ResponseEntity.ok(acceptRequest);
+
+    // 친구 요청 승인/거부 API
+    @PatchMapping("/accept/{requestId}")
+    public ResponseEntity<String> acceptFriendRequest(
+            @PathVariable Long requestId,
+            @RequestParam boolean isApproved,
+            HttpSession session) {
+
+        String loggedInUserEmail = SessionUtil.validateSession(session);
+        FriendDto response = friendService.acceptFriendRequest(requestId, isApproved, loggedInUserEmail);
+        return ResponseEntity.ok(isApproved ? "친구 요청이 승인되었습니다." : "친구 요청이 거부되었습니다.");
     }
+
     // 친구 삭제
     @DeleteMapping("/{requestId}")
-    public ResponseEntity<Object> deleteFriend(
-            @PathVariable Long requestId,
-            HttpServletRequest req) {
-            friendService.deleteFriend(requestId, req);
-            return ResponseEntity.ok("친구가 삭제되었습니다.");
-        }
+    public ResponseEntity<?> deleteFriend(
+            @PathVariable Long requestId, @RequestBody MemberDto memberDto) {
+        friendService.deleteFriend(requestId, memberDto);
+        return ResponseEntity.status(HttpStatus.OK).body("친구가 성고적으로 삭제 되었습니다.");
     }
+}
 
