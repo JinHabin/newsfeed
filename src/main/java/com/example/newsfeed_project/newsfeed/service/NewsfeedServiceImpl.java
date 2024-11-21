@@ -10,6 +10,7 @@ import com.example.newsfeed_project.member.service.MemberService;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedRequestDto;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedResponseDto;
 import com.example.newsfeed_project.newsfeed.entity.Newsfeed;
+import com.example.newsfeed_project.newsfeed.entity.NewsfeedLike;
 import com.example.newsfeed_project.newsfeed.repository.NewsfeedLikeRepository;
 import com.example.newsfeed_project.newsfeed.repository.NewsfeedRepository;
 import jakarta.servlet.http.HttpSession;
@@ -62,6 +63,7 @@ public class NewsfeedServiceImpl implements NewsfeedService{
     String email = (String) session.getAttribute("email");
     Newsfeed newsfeed = findNewsfeedByIdOrElseThrow(id);
     checkEmail(email, newsfeed);
+    newsfeedLikeRepository.deleteByNewsfeedId(id);
     newsfeedRepository.delete(newsfeed);
   }
 
