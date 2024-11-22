@@ -28,10 +28,17 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login (@RequestBody LoginRequestDto loginRequestDto,
-                                    HttpServletRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto,
+                                   HttpServletRequest request) {
         boolean authenticate = memberService.authenticate(loginRequestDto.getEmail(), loginRequestDto.getPassword());
         if (authenticate) {
+            // 기존 세션 무효화
+            HttpSession existingSession = request.getSession(false);
+            if (existingSession != null) {
+                existingSession.invalidate();
+            }
+
+            // 새로운 세션 생성
             HttpSession session = request.getSession(true);
             session.setAttribute("email", loginRequestDto.getEmail());
             log.info("logged in successfully : {}", loginRequestDto.getEmail());
