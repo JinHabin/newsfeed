@@ -1,7 +1,5 @@
 package com.example.newsfeed_project.member.controller;
 
-import static com.example.newsfeed_project.exception.ErrorCode.DIFFERENT_EMAIL_PASSWORD;
-import static com.example.newsfeed_project.exception.ErrorCode.NO_SESSION;
 import com.example.newsfeed_project.exception.InvalidInputException;
 import com.example.newsfeed_project.exception.NoAuthorizedException;
 import com.example.newsfeed_project.member.dto.LoginRequestDto;
@@ -15,6 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static com.example.newsfeed_project.exception.ErrorCode.DIFFERENT_EMAIL_PASSWORD;
+import static com.example.newsfeed_project.exception.ErrorCode.NO_SESSION;
 
 @Slf4j
 @RestController
