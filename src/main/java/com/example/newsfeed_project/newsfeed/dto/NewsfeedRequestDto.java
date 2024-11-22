@@ -9,9 +9,9 @@ public class NewsfeedRequestDto {
 
   private String image;
 
-  @NotBlank
+  @NotBlank(message = "title은 필수 값 입니다.")
   private String title;
 
-  @NotNull
+  @NotNull(message = "content는 필수 값 입니다.")
   private String content;
 }
