@@ -55,6 +55,17 @@ public class NewsfeedController {
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
+  //사용자를 기준으로 조회를 하는 메서드
+  @GetMapping("/member/{memberId}")
+  public ResponseEntity<List<NewsfeedResponseDto>> findByMemberId(
+      @PathVariable long memberId,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Direction.DESC)
+      Pageable pageable
+  ){
+    List<NewsfeedResponseDto> list = newsfeedService.findByMemberId(memberId, pageable);
+    return new ResponseEntity<>(list, HttpStatus.OK);
+  }
+
   //좋아요를 기준으로 정렬하는 메서드
   @GetMapping("/likes")
   public ResponseEntity<List<NewsfeedResponseDto>> findAllOrderByLikes(

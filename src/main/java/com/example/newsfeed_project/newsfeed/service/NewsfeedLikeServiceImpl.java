@@ -37,10 +37,7 @@ public class NewsfeedLikeServiceImpl implements NewsfeedLikeService {
     Member member = memberService.validateEmail(email);
     Newsfeed newsfeed = newsfeedService.findNewsfeedByIdOrElseThrow(newsfeedId);
     NewsfeedLike newsfeedLike = newsfeedLikeRepository.findByNewsfeedIdAndMemberId(newsfeedId, member.getId());
-    if(newsfeedLike != null) {
-      newsfeedLike.setMember(member);
-      newsfeedLike.setNewsfeed(newsfeed);
-    }else{
+    if(newsfeedLike == null){
       newsfeedLike = new NewsfeedLike();
       newsfeedLike.setMember(member);
       newsfeedLike.setNewsfeed(newsfeed);

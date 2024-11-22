@@ -22,4 +22,6 @@ public interface NewsfeedService {
   Newsfeed findNewsfeedByIdOrElseThrow(Long id);
 
   List<NewsfeedResponseDto> findAllOrderByLikes(Pageable pageable);
+
+  List<NewsfeedResponseDto> findByMemberId(long memberId, Pageable pageable);
 }

@@ -17,6 +17,8 @@ public class NewsfeedResponseDto {
 
   private String content;
 
+  private String author;
+
   private long like;
 
   private LocalDateTime updatedAt;
@@ -26,6 +28,7 @@ public class NewsfeedResponseDto {
         newsfeed.getFeedImage(),
         newsfeed.getTitle(),
         newsfeed.getContent(),
+        newsfeed.getMember().getEmail(),
         like,
         newsfeed.getUpdatedAt()
     );

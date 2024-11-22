@@ -37,7 +37,7 @@ public class NewsfeedServiceImpl implements NewsfeedService{
     newsfeed.setMember(member);
     newsfeedRepository.save(newsfeed);
     long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
-    return new NewsfeedResponseDto(newsfeed.getFeedImage(), newsfeed.getTitle(), newsfeed.getContent(), like , newsfeed.getUpdatedAt());
+    return new NewsfeedResponseDto(newsfeed.getFeedImage(), newsfeed.getTitle(), newsfeed.getContent(), newsfeed.getMember().getEmail(), like , newsfeed.getUpdatedAt());
   }
 
   @Override
@@ -59,7 +59,7 @@ public class NewsfeedServiceImpl implements NewsfeedService{
     checkEmail(email, newsfeed);
     newsfeed.updateNewsfeed(dto);
     long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
-    return new NewsfeedResponseDto(newsfeed.getFeedImage(), newsfeed.getTitle(), newsfeed.getContent(), like, newsfeed.getUpdatedAt());
+    return new NewsfeedResponseDto(newsfeed.getFeedImage(), newsfeed.getTitle(), newsfeed.getContent(), newsfeed.getMember().getEmail(), like, newsfeed.getUpdatedAt());
   }
 
   @Transactional
@@ -87,6 +87,17 @@ public class NewsfeedServiceImpl implements NewsfeedService{
           return NewsfeedResponseDto.toDto(newsfeed, like);
         })
         .sorted(Comparator.comparing(NewsfeedResponseDto::getLike).reversed())
+        .toList();
+  }
+
+  @Override
+  public List<NewsfeedResponseDto> findByMemberId(long memberId, Pageable pageable) {
+    return newsfeedRepository.findByMemberId(memberId, pageable)
+        .stream()
+        .map(newsfeed -> {
+          long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
+          return NewsfeedResponseDto.toDto(newsfeed, like);
+        })
         .toList();
   }
 
