@@ -30,8 +30,7 @@ public class NewsfeedServiceImpl implements NewsfeedService{
   private final NewsfeedLikeRepository newsfeedLikeRepository;
 
   @Override
-  public NewsfeedResponseDto save(NewsfeedRequestDto dto, HttpSession session) {
-    String email = (String) session.getAttribute("email");
+  public NewsfeedResponseDto save(NewsfeedRequestDto dto, String email) {
     Member member = memberService.validateEmail(email);
     Newsfeed newsfeed = new Newsfeed(dto.getImage(), dto.getTitle(), dto.getContent());
     newsfeed.setMember(member);
@@ -53,8 +52,7 @@ public class NewsfeedServiceImpl implements NewsfeedService{
 
   @Transactional
   @Override
-  public NewsfeedResponseDto updateNewsfeed(Long id, NewsfeedRequestDto dto, HttpSession session) {
-    String email = (String) session.getAttribute("email");
+  public NewsfeedResponseDto updateNewsfeed(Long id, NewsfeedRequestDto dto, String email) {
     Newsfeed newsfeed = findNewsfeedByIdOrElseThrow(id);
     checkEmail(email, newsfeed);
     newsfeed.updateNewsfeed(dto);
@@ -64,8 +62,7 @@ public class NewsfeedServiceImpl implements NewsfeedService{
 
   @Transactional
   @Override
-  public void delete(Long id, HttpSession session) {
-    String email = (String) session.getAttribute("email");
+  public void delete(Long id, String email) {
     Newsfeed newsfeed = findNewsfeedByIdOrElseThrow(id);
     checkEmail(email, newsfeed);
     deleteNewsfeedLike(id);
@@ -106,6 +103,7 @@ public class NewsfeedServiceImpl implements NewsfeedService{
       throw new NoAuthorizedException(NO_AUTHOR_CHANGE);
     }
   }
+
   private void deleteNewsfeedLike(long newsfeedId) {
     List<NewsfeedLike> newsfeedLike = newsfeedLikeRepository.findByNewsfeedId(newsfeedId);
     if(!newsfeedLike.isEmpty()) {
