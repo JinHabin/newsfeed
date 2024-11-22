@@ -60,7 +60,7 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.OK).body(memberByEmail);
     }
 
-    @PutMapping("/password/{id}")
+    @PutMapping("/password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody PasswordRequestDto passwordRequestDto, HttpSession session) {
         MemberDto memberDto = memberService.changePassword(passwordRequestDto.getOldPassword(), passwordRequestDto.getNewPassword(), session);
         return ResponseEntity.status(HttpStatus.OK).body(memberDto);
