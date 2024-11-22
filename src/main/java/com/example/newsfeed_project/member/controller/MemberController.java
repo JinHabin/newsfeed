@@ -1,10 +1,7 @@
 package com.example.newsfeed_project.member.controller;
 
 import com.example.newsfeed_project.exception.NoAuthorizedException;
-import com.example.newsfeed_project.member.dto.MemberDto;
-import com.example.newsfeed_project.member.dto.MemberUpdateRequestDto;
-import com.example.newsfeed_project.member.dto.MemberUpdateResponseDto;
-import com.example.newsfeed_project.member.dto.PasswordRequestDto;
+import com.example.newsfeed_project.member.dto.*;
 import com.example.newsfeed_project.member.service.MemberService;
 import com.example.newsfeed_project.util.SessionUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -72,13 +69,14 @@ public class MemberController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteMemberById(@Valid @RequestBody PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
+    public ResponseEntity<?> deleteMemberById(@Valid @RequestBody DeleteRequestDto deleteRequestDto, HttpServletRequest request) {
         // 세션에서 이메일 확인
         String email = SessionUtil.validateSession(request.getSession(false));
         MemberDto existingMember = memberService.getMemberByEmail(email);
 
         // 회원 탈퇴 처리 (비밀번호 검증 포함)
-        memberService.deleteMemberById(existingMember.getId(), passwordRequestDto.getOldPassword());
+        memberService.deleteMemberById(existingMember.getId(), deleteRequestDto.getOldPassword());
+
 
         return ResponseEntity.status(HttpStatus.OK).body("회원 삭제가 완료되었습니다.");
     }
