@@ -19,6 +19,8 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.example.newsfeed_project.exception.ErrorCode.*;
+
 @Slf4j
 @Service
 public class MemberServiceImpl implements MemberService {
@@ -31,58 +33,62 @@ public class MemberServiceImpl implements MemberService {
         this.passwordEncoder = passwordEncoder;
     }
 
+
     @Override
     @Transactional
     public MemberDto createMember(MemberDto memberDto) {
-        if (memberRepository.findByEmailIncludingDeleted(memberDto.getEmail()).isPresent()) {
-            throw new DuplicatedException(EMAIL_EXIST); // 이미 존재하는 이메일 에러 처리
-        }
+        // 이메일 중복 검사
+        checkIfEmailExistsIncludingDeleted(memberDto.getEmail());
 
+        // 비밀번호 암호화 및 회원 생성
         memberDto = encryptedPassword(memberDto);
-        Member createMember = Member.toEntity(memberDto);
-        Member save = memberRepository.save(createMember);
-        return MemberDto.toDto(save);
+        Member newMember = Member.toEntity(memberDto);
+        Member savedMember = memberRepository.save(newMember);
+
+        return MemberDto.toDto(savedMember);
     }
 
     @Override
     @Transactional
     public MemberDto updateMember(Long id, String password, MemberDto memberDto) {
-        Member findMemberId = validateId(id);
-        if (!passwordEncoder.matches(password, findMemberId.getPassword())) {
+        Member member = validateId(id);
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(password, member.getPassword())) {
             throw new InvalidInputException(WRONG_PASSWORD);
         }
 
-        findMemberId.updatedMember(memberDto);
-
-        try {
-            Member updatedMember = memberRepository.save(findMemberId);
-            return MemberDto.toDto(updatedMember);
-        } catch (OptimisticLockingFailureException e) {
-            throw new RuntimeException("충돌이 발생했습니다. 다시 시도하세요");
-        }
+        // 회원 정보 업데이트
+        member.updatedMember(memberDto);
+        return MemberDto.toDto(memberRepository.save(member));
     }
 
     @Override
     @Transactional(readOnly = true)
     public MemberDto getMemberById(Long id) {
-        Member findMemberId = validateId(id);
-        return MemberDto.toDto(findMemberId);
+        Member member = validateId(id);
+        return MemberDto.toDto(member);
     }
 
     @Override
     @Transactional(readOnly = true)
     public MemberDto getMemberByEmail(String email) {
         Member member = validateEmail(email);
-
         return MemberDto.toDto(member);
     }
 
     @Override
     @Transactional
-    public void deleteMemberById(Long id) {
-        Member member = validateId(id);
-        member.markAsDeleted(); // Soft 삭제 처리
-        memberRepository.save(member); // 상태 저장
+    public void deleteMemberById(Long id, String password) {
+        Member member = memberRepository.findById(id)
+                .filter(m -> !m.isDeleted()) // 이미 탈퇴된 회원은 제외
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_MEMBER));
+
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new InvalidInputException(WRONG_PASSWORD);
+        }
+
+        member.markAsDeleted(); // 소프트 삭제
     }
 
     @Override
@@ -92,16 +98,15 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_MEMBER));
 
         if (!member.isDeleted()) {
-            throw new IllegalArgumentException("회원이 삭제되지 않았습니다.");
+            throw new IllegalArgumentException("이미 활성화된 회원입니다.");
         }
 
-        // 동일한 이메일을 사용하는 활성 회원이 있는지 검사
-        if (memberRepository.findByEmail(member.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 동일한 이메일을 사용하는 회원이 존재합니다.");
+        // 동일한 이메일을 사용하는 활성 회원 존재 여부 확인
+        if (memberRepository.existsByEmailAndDeletedAtIsNull(member.getEmail())) {
+            throw new IllegalArgumentException("동일한 이메일을 사용하는 활성 회원이 존재합니다.");
         }
 
-        member.restore();
-        memberRepository.save(member);
+        member.restore(); // 복구 처리
     }
 
     @Override
@@ -110,12 +115,12 @@ public class MemberServiceImpl implements MemberService {
         Member member = validateEmail(session.getAttribute("email").toString());
 
         if (!passwordEncoder.matches(oldPassword, member.getPassword())) {
-            throw new InvalidInputException(SAME_PASSWORD);
+            throw new InvalidInputException(WRONG_PASSWORD);
 //            throw new IllegalArgumentException("Old password and new password do not match");
         }
 
         if (oldPassword.equals(newPassword)) {
-            throw new IllegalArgumentException("비밀번호가 동일합니다.");
+            throw new InvalidInputException(SAME_PASSWORD);
         }
 
         String encodedPassword = passwordEncoder.encode(newPassword);
@@ -128,33 +133,34 @@ public class MemberServiceImpl implements MemberService {
         return MemberDto.toDto(changePassword);
     }
 
+
     @Override
     @Transactional(readOnly = true)
     public boolean authenticate(String email, String password) {
         Member member = validateEmail(email);
-
-        if (member != null && passwordEncoder.matches(password, member.getPassword())) {
-            return true;
-        }
-        return false;
+        return passwordEncoder.matches(password, member.getPassword());
     }
+
 
     public Member validateId(Long id) {
         return memberRepository.findById(id)
-                .filter(member -> !member.isDeleted()) // 삭제된 회원 제외
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_MEMBER));
     }
 
     public Member validateEmail(String email) {
         return memberRepository.findByEmail(email)
-                .filter(member -> !member.isDeleted()) // 삭제된 회원 제외
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_EMAIL));
+    }
+
+    private void checkIfEmailExistsIncludingDeleted(String email) {
+        if (memberRepository.existsByEmailIncludingDeleted(email)) {
+            throw new DuplicatedException(EMAIL_EXIST);
+        }
     }
 
     private MemberDto encryptedPassword(MemberDto memberDto) {
         if (memberDto.getPassword() != null && !memberDto.getPassword().isEmpty()) {
-            String encodedPassword = passwordEncoder.encode(memberDto.getPassword());
-            memberDto = memberDto.withPassword(encodedPassword);
+            memberDto = memberDto.withPassword(passwordEncoder.encode(memberDto.getPassword()));
         }
         return memberDto;
     }

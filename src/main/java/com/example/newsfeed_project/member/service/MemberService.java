@@ -9,7 +9,7 @@ public interface MemberService {
     MemberDto updateMember(Long id, String password, MemberDto memberDto);
     MemberDto getMemberById(Long id);
     MemberDto getMemberByEmail(String email);
-    void deleteMemberById(Long id);
+    void deleteMemberById(Long id, String password);
     MemberDto changePassword(String oldPassword, String newPassword, HttpSession session);
     Member validateId(Long id);
     Member validateEmail(String email);

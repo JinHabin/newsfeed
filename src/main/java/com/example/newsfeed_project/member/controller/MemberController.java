@@ -60,17 +60,21 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.OK).body(memberByEmail);
     }
 
-    @PutMapping("/password/{id}")
+    @PutMapping("/password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody PasswordRequestDto passwordRequestDto, HttpSession session) {
         MemberDto memberDto = memberService.changePassword(passwordRequestDto.getOldPassword(), passwordRequestDto.getNewPassword(), session);
         return ResponseEntity.status(HttpStatus.OK).body(memberDto);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteMemberById(HttpServletRequest request) {
+    public ResponseEntity<?> deleteMemberById(@Valid @RequestBody PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
+        // 세션에서 이메일 확인
         String email = SessionUtil.validateSession(request.getSession(false));
         MemberDto existingMember = memberService.getMemberByEmail(email);
-        memberService.deleteMemberById(existingMember.getId());
+
+        // 회원 탈퇴 처리 (비밀번호 검증 포함)
+        memberService.deleteMemberById(existingMember.getId(), passwordRequestDto.getOldPassword());
+
         return ResponseEntity.status(HttpStatus.OK).body("회원 삭제가 완료되었습니다.");
     }
 
