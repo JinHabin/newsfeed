@@ -2,6 +2,7 @@ package com.example.newsfeed_project.newsfeed.controller;
 
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedRequestDto;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedResponseDto;
+import com.example.newsfeed_project.newsfeed.dto.NewsfeedTermRequestDto;
 import com.example.newsfeed_project.newsfeed.service.NewsfeedService;
 import com.example.newsfeed_project.util.SessionUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,34 +48,38 @@ public class NewsfeedController {
     return new ResponseEntity<>(newsfeedResponseDto, HttpStatus.CREATED);
   }
 
-  //전체 조회를 하는 메서드
+  //전체 조회를 하는 메서드 / 좋아요순 정렬기능이 있음
   @GetMapping
   public ResponseEntity<List<NewsfeedResponseDto>> findAll(
+      @RequestParam(required = false, defaultValue = "false") boolean isLike,
       @PageableDefault(size = 10, sort = "updatedAt", direction = Direction.DESC)
       Pageable pageable
   ){
-    List<NewsfeedResponseDto> list = newsfeedService.findAll(pageable);
+    List<NewsfeedResponseDto> list = newsfeedService.findAll(isLike, pageable);
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
-  //사용자를 기준으로 조회를 하는 메서드
+  //사용자를 기준으로 조회를 하는 메서드 / 좋아요순 정렬기능이 있음
   @GetMapping("/member/{memberId}")
   public ResponseEntity<List<NewsfeedResponseDto>> findByMemberId(
       @PathVariable long memberId,
+      @RequestParam(required = false, defaultValue = "false") boolean isLike,
       @PageableDefault(size = 10, sort = "createdAt", direction = Direction.DESC)
       Pageable pageable
   ){
-    List<NewsfeedResponseDto> list = newsfeedService.findByMemberId(memberId, pageable);
+    List<NewsfeedResponseDto> list = newsfeedService.findByMemberId(memberId, isLike, pageable);
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
-  //좋아요를 기준으로 정렬하는 메서드
-  @GetMapping("/likes")
-  public ResponseEntity<List<NewsfeedResponseDto>> findAllOrderByLikes(
-      @PageableDefault(size = 3, sort = "updated_at", direction = Direction.DESC)
+  //기간검색 / 좋아요순 정렬기능이 있음
+  @GetMapping("/term")
+  public ResponseEntity<List<NewsfeedResponseDto>> findAllByTerm(
+      @Valid @RequestBody NewsfeedTermRequestDto newsfeedTermRequestDto,
+      @RequestParam(required = false, defaultValue = "false") boolean isLike,
+      @PageableDefault(size = 10, sort = "updatedAt", direction = Direction.DESC)
       Pageable pageable
   ){
-    List<NewsfeedResponseDto> list = newsfeedService.findAllOrderByLikes(pageable);
+    List<NewsfeedResponseDto> list = newsfeedService.findAllByTerm(newsfeedTermRequestDto, isLike, pageable);
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 

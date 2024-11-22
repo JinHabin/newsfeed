@@ -1,7 +1,6 @@
 package com.example.newsfeed_project.newsfeed.service;
 
 import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_NEWSFEED;
-import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_NEWSFEED_LIKE;
 import static com.example.newsfeed_project.exception.ErrorCode.NO_AUTHOR_CHANGE;
 import com.example.newsfeed_project.exception.NoAuthorizedException;
 import com.example.newsfeed_project.exception.NotFoundException;
@@ -9,11 +8,12 @@ import com.example.newsfeed_project.member.entity.Member;
 import com.example.newsfeed_project.member.service.MemberService;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedRequestDto;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedResponseDto;
+import com.example.newsfeed_project.newsfeed.dto.NewsfeedTermRequestDto;
 import com.example.newsfeed_project.newsfeed.entity.Newsfeed;
 import com.example.newsfeed_project.newsfeed.entity.NewsfeedLike;
 import com.example.newsfeed_project.newsfeed.repository.NewsfeedLikeRepository;
 import com.example.newsfeed_project.newsfeed.repository.NewsfeedRepository;
-import jakarta.servlet.http.HttpSession;
+import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -40,14 +40,12 @@ public class NewsfeedServiceImpl implements NewsfeedService{
   }
 
   @Override
-  public List<NewsfeedResponseDto> findAll(Pageable pageable) {
-    return newsfeedRepository.findAll(pageable)
-        .stream()
-        .map(newsfeed -> {
-          long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
-          return NewsfeedResponseDto.toDto(newsfeed, like);
-        })
-        .toList();
+  public List<NewsfeedResponseDto> findAll(boolean isLike, Pageable pageable) {
+    if(!isLike){
+      return searchAll(pageable);
+    }else{
+      return searchAllWithLike(pageable);
+    }
   }
 
   @Transactional
@@ -76,7 +74,34 @@ public class NewsfeedServiceImpl implements NewsfeedService{
   }
 
   @Override
-  public List<NewsfeedResponseDto> findAllOrderByLikes(Pageable pageable) {
+  public List<NewsfeedResponseDto> findByMemberId(long memberId, boolean isLike, Pageable pageable) {
+    if(!isLike){
+      return searchByMemberId(memberId, pageable);
+    }else{
+      return searchByMemberIdWithLike(memberId, pageable);
+    }
+  }
+
+  @Override
+  public List<NewsfeedResponseDto> findAllByTerm(NewsfeedTermRequestDto newsfeedTermRequestDto, boolean isLike, Pageable pageable) {
+    if(!isLike){
+      return searchByTerm(newsfeedTermRequestDto, pageable);
+    }else{
+      return searchByTermWithLike(newsfeedTermRequestDto, pageable);
+    }
+  }
+
+  private List<NewsfeedResponseDto> searchAll(Pageable pageable){
+    return newsfeedRepository.findAll(pageable)
+        .stream()
+        .map(newsfeed -> {
+          long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
+          return NewsfeedResponseDto.toDto(newsfeed, like);
+        })
+        .toList();
+  }
+
+  private List<NewsfeedResponseDto> searchAllWithLike(Pageable pageable){
     return newsfeedRepository.findAll(pageable)
         .stream()
         .map(newsfeed -> {
@@ -87,14 +112,45 @@ public class NewsfeedServiceImpl implements NewsfeedService{
         .toList();
   }
 
-  @Override
-  public List<NewsfeedResponseDto> findByMemberId(long memberId, Pageable pageable) {
+  private List<NewsfeedResponseDto> searchByMemberId(long memberId, Pageable pageable){
     return newsfeedRepository.findByMemberId(memberId, pageable)
         .stream()
         .map(newsfeed -> {
           long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
           return NewsfeedResponseDto.toDto(newsfeed, like);
         })
+        .toList();
+  }
+
+  private List<NewsfeedResponseDto> searchByMemberIdWithLike(long memberId, Pageable pageable){
+    return newsfeedRepository.findByMemberId(memberId, pageable)
+        .stream()
+        .map(newsfeed -> {
+          long like = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
+          return NewsfeedResponseDto.toDto(newsfeed, like);
+        })
+        .sorted(Comparator.comparing(NewsfeedResponseDto::getLike).reversed())
+        .toList();
+  }
+
+  private List<NewsfeedResponseDto> searchByTerm(NewsfeedTermRequestDto newsfeedTermRequestDto, Pageable pageable) {
+    return newsfeedRepository.findByCreatedAtBetween(newsfeedTermRequestDto.getStartDateTime().atStartOfDay(), newsfeedTermRequestDto.getEndDateTime().atTime(LocalTime.MAX), pageable)
+        .stream()
+        .map(newsfeed -> {
+          long likeCount = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
+          return NewsfeedResponseDto.toDto(newsfeed, likeCount);
+        })
+        .toList();
+  }
+
+  private List<NewsfeedResponseDto> searchByTermWithLike(NewsfeedTermRequestDto newsfeedTermRequestDto, Pageable pageable) {
+    return newsfeedRepository.findByCreatedAtBetween(newsfeedTermRequestDto.getStartDateTime().atStartOfDay(), newsfeedTermRequestDto.getEndDateTime().atTime(LocalTime.MAX), pageable)
+        .stream()
+        .map(newsfeed -> {
+          long likeCount = newsfeedLikeRepository.countByNewsfeedId(newsfeed.getId());
+          return NewsfeedResponseDto.toDto(newsfeed, likeCount);
+        })
+        .sorted(Comparator.comparing(NewsfeedResponseDto::getLike).reversed())
         .toList();
   }
 
@@ -110,5 +166,4 @@ public class NewsfeedServiceImpl implements NewsfeedService{
       newsfeedLikeRepository.deleteByNewsfeedId(newsfeedId);
     }
   }
-
 }
