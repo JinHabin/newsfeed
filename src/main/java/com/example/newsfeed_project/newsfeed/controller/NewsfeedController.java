@@ -3,6 +3,7 @@ package com.example.newsfeed_project.newsfeed.controller;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedRequestDto;
 import com.example.newsfeed_project.newsfeed.dto.NewsfeedResponseDto;
 import com.example.newsfeed_project.newsfeed.service.NewsfeedService;
+import com.example.newsfeed_project.util.SessionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -41,7 +42,8 @@ public class NewsfeedController {
       HttpServletRequest request
   ) {
     HttpSession session = request.getSession(false);
-    NewsfeedResponseDto newsfeedResponseDto = newsfeedService.save(newsfeedRequestDto, session);
+    String email = (String) session.getAttribute("email");
+    NewsfeedResponseDto newsfeedResponseDto = newsfeedService.save(newsfeedRequestDto, email);
     return new ResponseEntity<>(newsfeedResponseDto, HttpStatus.CREATED);
   }
 
@@ -84,7 +86,8 @@ public class NewsfeedController {
       HttpServletRequest request
   ){
     HttpSession session = request.getSession(false);
-    NewsfeedResponseDto newsfeedResponseDto = newsfeedService.updateNewsfeed(id, newsfeedRequestDto, session);
+    String email = (String) session.getAttribute("email");
+    NewsfeedResponseDto newsfeedResponseDto = newsfeedService.updateNewsfeed(id, newsfeedRequestDto, email);
     return new ResponseEntity<>(newsfeedResponseDto, HttpStatus.OK);
   }
 
@@ -95,7 +98,8 @@ public class NewsfeedController {
       HttpServletRequest request
   ){
     HttpSession session = request.getSession(false);
-    newsfeedService.delete(id, session);
+    String email = SessionUtil.validateSession(session);
+    newsfeedService.delete(id, email);
     return new ResponseEntity<>("Deleted", HttpStatus.OK);
   }
 }

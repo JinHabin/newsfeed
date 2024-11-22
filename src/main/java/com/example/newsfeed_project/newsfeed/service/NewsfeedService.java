@@ -11,13 +11,13 @@ import org.springframework.data.domain.Pageable;
 public interface NewsfeedService {
 
   //뉴스피드 생성
-  NewsfeedResponseDto save(NewsfeedRequestDto dto, HttpSession request);
+  NewsfeedResponseDto save(NewsfeedRequestDto dto, String email);
 
   List<NewsfeedResponseDto> findAll(Pageable pageable);
 
-  NewsfeedResponseDto updateNewsfeed(Long id, NewsfeedRequestDto dto, HttpSession session);
+  NewsfeedResponseDto updateNewsfeed(Long id, NewsfeedRequestDto dto, String email);
 
-  void delete(Long id, HttpSession session);
+  void delete(Long id, String email);
 
   Newsfeed findNewsfeedByIdOrElseThrow(Long id);
 
