@@ -7,9 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDateTime;
-import org.hibernate.validator.constraints.Length;
 
 @Builder
 @Getter
@@ -29,13 +29,13 @@ public class MemberDto {
     @Length(min = 4, message = "비밀번호는 최소 4자입니다.")
     private String password;
 
-//    @NotBlank(message = "핸드폰 번호는 필수 값 입니다.")
+    @NotBlank(message = "핸드폰 번호는 필수 값 입니다.")
     private String phoneNumber;
 
-//    @NotBlank(message = "주소는 필수 값 입니다.")
+    @NotBlank(message = "주소는 필수 값 입니다.")
     private String address;
 
-//    @NotBlank(message = "나이는 필수 값 입니다.")
+    @NotBlank(message = "나이는 필수 값 입니다.")
     private int age;
 
     private String image;

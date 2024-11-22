@@ -1,7 +1,6 @@
 package com.example.newsfeed_project.friend.dto;
 
 import com.example.newsfeed_project.friend.entity.Friend;
-import com.example.newsfeed_project.member.dto.MemberDto;
 import lombok.*;
 
 
@@ -10,16 +9,23 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 public class FriendDto {
-    private Long memberId;
+    private Long id;
+    private Long requestFriendId;
+    private Long responseFriendId;
     private String image;
     private String email;
     private String name;
-    private MemberDto member;
+    private Boolean isApproval;
 
     public FriendDto(Friend friend) {
-        this.memberId = friend.getMember().getId();
-        this.image = friend.getMember().getImage();
-        this.email = friend.getMember().getEmail();
-        this.name = friend.getMember().getName();
+        if (friend == null || friend.getRequestFriend() == null || friend.getResponseFriend() == null) {
+            throw new IllegalArgumentException("Friend 또는 Member 정보가 올바르지 않습니다.");
+        }
+        this.requestFriendId = friend.getRequestFriend().getId();
+        this.responseFriendId = friend.getResponseFriend().getId();
+        this.image = friend.getRequestFriend().getImage(); // 요청자의 이미지
+        this.email = friend.getRequestFriend().getEmail(); // 요청자의 이메일
+        this.name = friend.getRequestFriend().getName();   // 요청자의 이름
+        this.isApproval = friend.isFriendApproval();
     }
 }

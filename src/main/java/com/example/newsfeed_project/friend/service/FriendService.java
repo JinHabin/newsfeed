@@ -1,12 +1,11 @@
 package com.example.newsfeed_project.friend.service;
 
-import com.example.newsfeed_project.friend.dto.FriendRequestDto;
-import com.example.newsfeed_project.friend.dto.FriendResponseDto;
-import jakarta.servlet.http.HttpServletRequest;
+import com.example.newsfeed_project.friend.dto.FriendDto;
+import org.springframework.data.domain.Page;
 
 public interface FriendService {
-    FriendResponseDto addFriend(FriendRequestDto friendRequestDto);
-    FriendResponseDto acceptFriendApproval(Long requestId, boolean friendApproval);
-    //List<FriendDto> getFriendList(int page, int size, HttpServletRequest request);
-    void deleteFriend(Long requestId, HttpServletRequest req);
+    void sendFriendRequest(FriendDto friendDto, String loggedInUserEmail);
+    void acceptFriendRequest(Long requestId, Long responseFriendId, boolean isApproved, String loggedInUserEmail);
+    void deleteFriendByResponseId(Long requestId, Long responseId);
+    Page<FriendDto> getApprovedFriendList(int page, int size, String email);
 }
