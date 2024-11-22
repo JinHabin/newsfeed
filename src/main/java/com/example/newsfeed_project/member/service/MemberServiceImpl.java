@@ -1,17 +1,27 @@
 package com.example.newsfeed_project.member.service;
 
+import static com.example.newsfeed_project.exception.ErrorCode.EMAIL_EXIST;
+import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_EMAIL;
+import static com.example.newsfeed_project.exception.ErrorCode.NOT_FOUND_MEMBER;
+import static com.example.newsfeed_project.exception.ErrorCode.SAME_PASSWORD;
+import static com.example.newsfeed_project.exception.ErrorCode.WRONG_PASSWORD;
+
 import com.example.newsfeed_project.config.PasswordEncoder;
+import com.example.newsfeed_project.exception.DuplicatedException;
+import com.example.newsfeed_project.exception.InvalidInputException;
+import com.example.newsfeed_project.exception.NotFoundException;
 import com.example.newsfeed_project.member.dto.MemberDto;
+import com.example.newsfeed_project.member.dto.MemberUpdateRequestDto;
+import com.example.newsfeed_project.member.dto.MemberUpdateResponseDto;
 import com.example.newsfeed_project.member.entity.Member;
 import com.example.newsfeed_project.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import static com.example.newsfeed_project.exception.ErrorCode.*;
 
 @Slf4j
 @Service
@@ -25,57 +35,84 @@ public class MemberServiceImpl implements MemberService {
         this.passwordEncoder = passwordEncoder;
     }
 
+
     @Override
     @Transactional
     public MemberDto createMember(MemberDto memberDto) {
-        if (memberRepository.findByEmail(memberDto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
-        }
+        // 이메일 중복 검사
+        checkIfEmailExistsIncludingDeleted(memberDto.getEmail());
 
+        // 비밀번호 암호화 및 회원 생성
         memberDto = encryptedPassword(memberDto);
-        Member createMember = Member.toEntity(memberDto);
-        Member save = memberRepository.save(createMember);
-        return MemberDto.toDto(save);
+        Member newMember = Member.toEntity(memberDto);
+        Member savedMember = memberRepository.save(newMember);
+
+        return MemberDto.toDto(savedMember);
     }
 
     @Override
     @Transactional
-    public MemberDto updateMember(Long id, String password, MemberDto memberDto) {
-        Member findMemberId = validateId(id);
-        if (!passwordEncoder.matches(password, findMemberId.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+    public MemberUpdateResponseDto updateMember(String email, MemberUpdateRequestDto requestDto) {
+        // 이메일로 회원 조회
+        Member member = validateEmail(email);
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(requestDto.getPassword(), member.getPassword())) {
+            throw new InvalidInputException(WRONG_PASSWORD);
         }
 
-        findMemberId.updatedMember(memberDto);
+        // 회원 정보 업데이트
+        member.updatedMember(requestDto);
 
-        try {
-            Member updatedMember = memberRepository.save(findMemberId);
-            return MemberDto.toDto(updatedMember);
-        } catch (OptimisticLockingFailureException e) {
-            throw new RuntimeException("충돌이 발생했습니다. 다시 시도하세요");
-        }
+        // 저장 후 업데이트된 데이터 반환
+        Member updatedMember = memberRepository.save(member);
+        return MemberUpdateResponseDto.toResponseDto(updatedMember);
     }
 
     @Override
     @Transactional(readOnly = true)
     public MemberDto getMemberById(Long id) {
-        Member findMemberId = validateId(id);
-        return MemberDto.toDto(findMemberId);
+        Member member = validateId(id);
+        return MemberDto.toDto(member);
     }
 
     @Override
     @Transactional(readOnly = true)
     public MemberDto getMemberByEmail(String email) {
         Member member = validateEmail(email);
-
         return MemberDto.toDto(member);
     }
 
     @Override
     @Transactional
-    public void deleteMemberById(Long id) {
-        validateId(id);
-        memberRepository.deleteById(id);
+    public void deleteMemberById(Long id, String password) {
+        Member member = memberRepository.findById(id)
+                .filter(m -> !m.isDeleted()) // 이미 탈퇴된 회원은 제외
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_MEMBER));
+
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new InvalidInputException(WRONG_PASSWORD);
+        }
+
+        member.markAsDeleted(); // 소프트 삭제
+    }
+
+    @Override
+    @Transactional
+    public void restoreMember(Long id) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_MEMBER));
+
+        if (!member.isDeleted()) {
+            throw new IllegalArgumentException("이미 활성화된 회원입니다.");
+        }
+
+        // 동일한 이메일을 사용하는 활성 회원 존재 여부 확인
+        if (memberRepository.existsByEmailAndDeletedAtIsNull(member.getEmail())) {
+            throw new IllegalArgumentException("동일한 이메일을 사용하는 활성 회원이 존재합니다.");
+        }
+
+        member.restore(); // 복구 처리
     }
 
     @Override
@@ -84,7 +121,12 @@ public class MemberServiceImpl implements MemberService {
         Member member = validateEmail(session.getAttribute("email").toString());
 
         if (!passwordEncoder.matches(oldPassword, member.getPassword())) {
-            throw new IllegalArgumentException("Old password and new password do not match");
+            throw new InvalidInputException(WRONG_PASSWORD);
+//            throw new IllegalArgumentException("Old password and new password do not match");
+        }
+
+        if (oldPassword.equals(newPassword)) {
+            throw new InvalidInputException(SAME_PASSWORD);
         }
 
         String encodedPassword = passwordEncoder.encode(newPassword);
@@ -97,33 +139,34 @@ public class MemberServiceImpl implements MemberService {
         return MemberDto.toDto(changePassword);
     }
 
+
     @Override
     @Transactional(readOnly = true)
     public boolean authenticate(String email, String password) {
         Member member = validateEmail(email);
-
-        if (member != null && passwordEncoder.matches(password, member.getPassword())) {
-            return true;
-        }
-        return false;
+        return passwordEncoder.matches(password, member.getPassword());
     }
 
 
     public Member validateId(Long id) {
         return memberRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_MEMBER));
     }
 
     public Member validateEmail(String email) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Member email not found"));
-        return member;
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_EMAIL));
+    }
+
+    private void checkIfEmailExistsIncludingDeleted(String email) {
+        if (memberRepository.existsByEmailIncludingDeleted(email)) {
+            throw new DuplicatedException(EMAIL_EXIST);
+        }
     }
 
     private MemberDto encryptedPassword(MemberDto memberDto) {
         if (memberDto.getPassword() != null && !memberDto.getPassword().isEmpty()) {
-            String encodedPassword = passwordEncoder.encode(memberDto.getPassword());
-            memberDto = memberDto.withPassword(encodedPassword);
+            memberDto = memberDto.withPassword(passwordEncoder.encode(memberDto.getPassword()));
         }
         return memberDto;
     }

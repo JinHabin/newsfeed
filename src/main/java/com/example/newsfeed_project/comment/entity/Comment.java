@@ -1,9 +1,8 @@
 package com.example.newsfeed_project.comment.entity;
 
-import com.example.newsfeed_project.comment.dto.CommentDto;
-import com.example.newsfeed_project.comment.dto.UpdateCommentResponseDto;
+import com.example.newsfeed_project.comment.dto.CommentRequestDto;
+import com.example.newsfeed_project.comment.dto.CommentResponseDto;
 import com.example.newsfeed_project.common.BaseEntity;
-import com.example.newsfeed_project.member.dto.MemberDto;
 import com.example.newsfeed_project.member.entity.Member;
 import com.example.newsfeed_project.newsfeed.entity.Newsfeed;
 import jakarta.persistence.*;
@@ -32,7 +31,7 @@ public class Comment extends BaseEntity {
 
     private String contents;
 
-    public static Comment toEntity(CommentDto dto) {
+    public static Comment toEntity(CommentRequestDto dto) {
         return Comment.builder()
                 .contents(dto.getContents())
                 .build();
@@ -46,7 +45,7 @@ public class Comment extends BaseEntity {
         this.feed = feed;
     }
 
-    public void updateComment(CommentDto dto) {
+    public void updateComment(CommentRequestDto dto) {
         if (dto.getContents() != null) {
             this.contents = dto.getContents();
         }

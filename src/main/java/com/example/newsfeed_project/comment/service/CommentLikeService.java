@@ -4,10 +4,8 @@ import com.example.newsfeed_project.comment.dto.CommentLikeResponseDto;
 import com.example.newsfeed_project.comment.entity.Comment;
 import com.example.newsfeed_project.comment.entity.CommentLike;
 import com.example.newsfeed_project.comment.repository.CommentLikeRepository;
-import com.example.newsfeed_project.comment.repository.CommentRepository;
 import com.example.newsfeed_project.member.entity.Member;
 import com.example.newsfeed_project.member.service.MemberService;
-import com.example.newsfeed_project.newsfeed.dto.LikeResonseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +31,7 @@ public class CommentLikeService {
             CommentLike commentDelLike = commentLikeRepository.findByCommentIdAndMemberId(commentId,member.getId());
             commentLikeRepository.delete(commentDelLike);
             return new CommentLikeResponseDto("댓글 좋아요 해제");
-        };
+        }
 
         commentLikeRepository.save(commentLike);
         return new CommentLikeResponseDto("댓글 좋아요");
