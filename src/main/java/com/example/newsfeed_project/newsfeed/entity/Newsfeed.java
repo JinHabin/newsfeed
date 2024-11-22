@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,9 +20,9 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "newsfeed")
 public class Newsfeed extends BaseEntity {
 
   @Id

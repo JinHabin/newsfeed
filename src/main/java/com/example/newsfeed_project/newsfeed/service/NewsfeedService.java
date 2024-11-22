@@ -5,6 +5,7 @@ import com.example.newsfeed_project.newsfeed.dto.NewsfeedResponseDto;
 import com.example.newsfeed_project.newsfeed.entity.Newsfeed;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface NewsfeedService {
@@ -21,4 +22,6 @@ public interface NewsfeedService {
   Newsfeed findNewsfeedByIdOrElseThrow(Long id);
 
   List<NewsfeedResponseDto> findAllOrderByLikes(Pageable pageable);
+
+  List<NewsfeedResponseDto> findByMemberId(long memberId, Pageable pageable);
 }

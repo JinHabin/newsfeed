@@ -7,5 +7,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class DuplicatedException extends RuntimeException {
 
-    private final ErrorCode errorCode;
+  private final ErrorCode errorCode;
 }
