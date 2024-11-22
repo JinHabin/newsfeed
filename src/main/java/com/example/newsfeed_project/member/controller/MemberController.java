@@ -24,10 +24,9 @@ public class MemberController {
     }
 
 
-    @GetMapping("/id")
-    public ResponseEntity<?> getProfile(HttpServletRequest request) {
-        String email = SessionUtil.validateSession(request.getSession(false));
-        MemberDto memberByEmail = memberService.getMemberByEmail(email);
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getProfile(@PathVariable Long id) {
+        MemberDto memberByEmail = memberService.getMemberById(id);
         return ResponseEntity.status(HttpStatus.OK).body(memberByEmail);
     }
 
@@ -75,7 +74,7 @@ public class MemberController {
         MemberDto existingMember = memberService.getMemberByEmail(email);
 
         // 회원 탈퇴 처리 (비밀번호 검증 포함)
-        memberService.deleteMemberById(existingMember.getId(), deleteRequestDto.getOldPassword());
+        memberService.deleteMemberById(existingMember.getId(), deleteRequestDto.getPassword());
 
 
         return ResponseEntity.status(HttpStatus.OK).body("회원 삭제가 완료되었습니다.");
