@@ -97,6 +97,7 @@ public class CommentService {
             commentLikeRepository.deleteByCommentId(commentId);
         }
         commentRepository.deleteById(commentId);
+
     }
 
     public Comment findCommentByIdOrElseThrow(Long id) {

@@ -27,10 +27,9 @@ public class MemberController {
     }
 
 
-    @GetMapping("/id")
-    public ResponseEntity<?> getProfile(HttpServletRequest request) {
-        String email = SessionUtil.validateSession(request.getSession(false));
-        MemberDto memberByEmail = memberService.getMemberByEmail(email);
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getProfile(@PathVariable Long id) {
+        MemberDto memberByEmail = memberService.getMemberById(id);
         return ResponseEntity.status(HttpStatus.OK).body(memberByEmail);
     }
 
