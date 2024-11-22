@@ -1,6 +1,7 @@
 package com.example.newsfeed_project.comment.entity;
 
 import com.example.newsfeed_project.member.entity.Member;
+import com.example.newsfeed_project.newsfeed.entity.Newsfeed;
 import jakarta.persistence.*;
 import lombok.Getter;
 

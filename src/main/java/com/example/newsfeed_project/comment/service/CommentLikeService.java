@@ -25,13 +25,12 @@ public class CommentLikeService {
         commentLike.setMember(member);
         commentLike.setComment(comment);
 
-
         //이미 좋아요 했을 시
         if(commentLikeRepository.findByCommentId(commentId) != null) {
             CommentLike commentDelLike = commentLikeRepository.findByCommentIdAndMemberId(commentId,member.getId());
             commentLikeRepository.delete(commentDelLike);
             return new CommentLikeResponseDto("댓글 좋아요 해제");
-        };
+        }
 
         commentLikeRepository.save(commentLike);
         return new CommentLikeResponseDto("댓글 좋아요");
