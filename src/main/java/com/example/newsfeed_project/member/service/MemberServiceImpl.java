@@ -1,4 +1,4 @@
-package com.example.newsfeedproject.member.service;
+package com.example.newsfeed_project.member.service;
 
 
 import com.example.newsfeed_project.config.PasswordEncoder;
@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.example.newsfeed_project.exception.ErrorCode.*;
 
 @Slf4j
 @Service
