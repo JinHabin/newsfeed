@@ -24,11 +24,17 @@ public class NewsfeedResponseDto {
   private LocalDateTime updatedAt;
 
   public static NewsfeedResponseDto toDto(Newsfeed newsfeed, long like) {
+    String email = "";
+    if(newsfeed.getMember().getDeletedAt() == null) {
+      email = newsfeed.getMember().getEmail();
+    }else{
+      email = "삭제된 사용자";
+    }
     return new NewsfeedResponseDto(
         newsfeed.getFeedImage(),
         newsfeed.getTitle(),
         newsfeed.getContent(),
-        newsfeed.getMember().getEmail(),
+        email,
         like,
         newsfeed.getUpdatedAt()
     );
