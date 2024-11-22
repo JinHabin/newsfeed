@@ -1,6 +1,9 @@
 package com.example.newsfeed_project.member.entity;
 
+import com.example.newsfeed_project.common.BaseEntity;
 import com.example.newsfeed_project.member.dto.MemberDto;
+import com.example.newsfeed_project.member.dto.MemberUpdateRequestDto;
+import com.example.newsfeed_project.member.dto.MemberUpdateResponseDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class Member {
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,21 +49,21 @@ public class Member {
                 .build();
     }
 
-    public void updatedMember(MemberDto memberDtO) {
-        if (memberDtO.getName() != null) {
-            this.name = memberDtO.getName();
+    public void updatedMember(MemberUpdateRequestDto updatedDto) {
+        if (updatedDto.getName() != null) {
+            this.name = updatedDto.getName();
         }
 
-        if (memberDtO.getImage() != null) {
-            this.image = memberDtO.getImage();
+        if (updatedDto.getImage() != null) {
+            this.image = updatedDto.getImage();
         }
 
-        if (memberDtO.getPhoneNumber() != null) {
-            this.phoneNumber = memberDtO.getPhoneNumber();
+        if (updatedDto.getPhoneNumber() != null) {
+            this.phoneNumber = updatedDto.getPhoneNumber();
         }
 
-        if (memberDtO.getAddress() != null) {
-            this.address = memberDtO.getAddress();
+        if (updatedDto.getAddress() != null) {
+            this.address = updatedDto.getAddress();
         }
     }
 

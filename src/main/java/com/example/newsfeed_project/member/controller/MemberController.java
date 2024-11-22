@@ -2,6 +2,7 @@ package com.example.newsfeed_project.member.controller;
 
 import com.example.newsfeed_project.exception.NoAuthorizedException;
 import com.example.newsfeed_project.member.dto.MemberDto;
+import com.example.newsfeed_project.member.dto.MemberUpdateRequestDto;
 import com.example.newsfeed_project.member.dto.MemberUpdateResponseDto;
 import com.example.newsfeed_project.member.dto.PasswordRequestDto;
 import com.example.newsfeed_project.member.service.MemberService;
@@ -39,12 +40,16 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdMember);
     }
 
-    @PutMapping("/memberUpdate")
-    public ResponseEntity<?> updateMember(@Valid @RequestBody MemberDto memberDto, HttpServletRequest request) {
+    @PutMapping("/update")
+    public ResponseEntity<MemberUpdateResponseDto> updateMember(
+            @Valid @RequestBody MemberUpdateRequestDto requestDto,
+            HttpServletRequest request) {
+        // 세션에서 이메일 추출
         String email = SessionUtil.validateSession(request.getSession(false));
-        MemberDto existingMember = memberService.getMemberByEmail(email);
-        MemberDto updatedMember = memberService.updateMember(existingMember.getId(), memberDto.getPassword(), memberDto);
-        MemberUpdateResponseDto responseDto = MemberUpdateResponseDto.toResponseDto(updatedMember);
+
+        // 업데이트 서비스 호출
+        MemberUpdateResponseDto responseDto = memberService.updateMember(email, requestDto);
+
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 

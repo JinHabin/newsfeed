@@ -11,6 +11,8 @@ import com.example.newsfeed_project.exception.DuplicatedException;
 import com.example.newsfeed_project.exception.InvalidInputException;
 import com.example.newsfeed_project.exception.NotFoundException;
 import com.example.newsfeed_project.member.dto.MemberDto;
+import com.example.newsfeed_project.member.dto.MemberUpdateRequestDto;
+import com.example.newsfeed_project.member.dto.MemberUpdateResponseDto;
 import com.example.newsfeed_project.member.entity.Member;
 import com.example.newsfeed_project.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpSession;
@@ -50,17 +52,21 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public MemberDto updateMember(Long id, String password, MemberDto memberDto) {
-        Member member = validateId(id);
+    public MemberUpdateResponseDto updateMember(String email, MemberUpdateRequestDto requestDto) {
+        // 이메일로 회원 조회
+        Member member = validateEmail(email);
 
         // 비밀번호 검증
-        if (!passwordEncoder.matches(password, member.getPassword())) {
+        if (!passwordEncoder.matches(requestDto.getPassword(), member.getPassword())) {
             throw new InvalidInputException(WRONG_PASSWORD);
         }
 
         // 회원 정보 업데이트
-        member.updatedMember(memberDto);
-        return MemberDto.toDto(memberRepository.save(member));
+        member.updatedMember(requestDto);
+
+        // 저장 후 업데이트된 데이터 반환
+        Member updatedMember = memberRepository.save(member);
+        return MemberUpdateResponseDto.toResponseDto(updatedMember);
     }
 
     @Override
