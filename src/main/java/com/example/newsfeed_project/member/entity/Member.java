@@ -1,9 +1,6 @@
 package com.example.newsfeed_project.member.entity;
 
-import com.example.newsfeed_project.common.BaseEntity;
 import com.example.newsfeed_project.member.dto.MemberDto;
-import com.example.newsfeed_project.member.dto.MemberUpdateRequestDto;
-import com.example.newsfeed_project.member.dto.MemberUpdateResponseDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class Member extends BaseEntity {
+public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,21 +46,21 @@ public class Member extends BaseEntity {
                 .build();
     }
 
-    public void updatedMember(MemberUpdateRequestDto updatedDto) {
-        if (updatedDto.getName() != null) {
-            this.name = updatedDto.getName();
+    public void updatedMember(MemberDto memberDtO) {
+        if (memberDtO.getName() != null) {
+            this.name = memberDtO.getName();
         }
 
-        if (updatedDto.getImage() != null) {
-            this.image = updatedDto.getImage();
+        if (memberDtO.getImage() != null) {
+            this.image = memberDtO.getImage();
         }
 
-        if (updatedDto.getPhoneNumber() != null) {
-            this.phoneNumber = updatedDto.getPhoneNumber();
+        if (memberDtO.getPhoneNumber() != null) {
+            this.phoneNumber = memberDtO.getPhoneNumber();
         }
 
-        if (updatedDto.getAddress() != null) {
-            this.address = updatedDto.getAddress();
+        if (memberDtO.getAddress() != null) {
+            this.address = memberDtO.getAddress();
         }
     }
 
@@ -81,20 +78,5 @@ public class Member extends BaseEntity {
                 .version(this.version)
                 .build();
     }
-
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
-    }
-
-    public void markAsDeleted() {
-        this.deletedAt = LocalDateTime.now();
-    }
-
-    public boolean isDeleted() {
-        return this.deletedAt != null;
-    }
-
-    public void restore() {
-        this.deletedAt = null;
-    }
 }
+
