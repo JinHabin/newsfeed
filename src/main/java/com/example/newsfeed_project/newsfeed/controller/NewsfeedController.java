@@ -8,6 +8,7 @@ import com.example.newsfeed_project.util.SessionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -43,7 +44,7 @@ public class NewsfeedController {
       HttpServletRequest request
   ) {
     HttpSession session = request.getSession(false);
-    String email = SessionUtil.validateSession(session);
+    String email = session.getAttribute("email").toString();
     NewsfeedResponseDto newsfeedResponseDto = newsfeedService.save(newsfeedRequestDto, email);
     return new ResponseEntity<>(newsfeedResponseDto, HttpStatus.CREATED);
   }
@@ -52,15 +53,21 @@ public class NewsfeedController {
   @GetMapping
   public ResponseEntity<List<NewsfeedResponseDto>> findAll(
       @RequestParam(required = false, defaultValue = "false") boolean isLike,
+//      @RequestParam(required = false, defaultValue = "-1") Long memberId,
+//      @RequestParam(required = false, value = "LocalDate.now()") LocalDate startDate,
+//      @RequestParam(required = false, value = "LocalDate.now()") LocalDate endDate,
       @PageableDefault(size = 10, sort = "updatedAt", direction = Direction.DESC)
       Pageable pageable
   ){
+//    List<NewsfeedResponseDto> list = newsfeedService.findAllNewsfeed(isLike, memberId, startDate, endDate, pageable);
     List<NewsfeedResponseDto> list = newsfeedService.findAll(isLike, pageable);
     return new ResponseEntity<>(list, HttpStatus.OK);
   }
 
+
+  //request param
   //사용자를 기준으로 조회를 하는 메서드 / 좋아요순 정렬기능이 있음
-  @GetMapping("/member/{memberId}")
+  @GetMapping("/members/{memberId}")
   public ResponseEntity<List<NewsfeedResponseDto>> findByMemberId(
       @PathVariable long memberId,
       @RequestParam(required = false, defaultValue = "false") boolean isLike,
@@ -91,7 +98,7 @@ public class NewsfeedController {
       HttpServletRequest request
   ){
     HttpSession session = request.getSession(false);
-    String email = SessionUtil.validateSession(session);
+    String email = session.getAttribute("email").toString();
     NewsfeedResponseDto newsfeedResponseDto = newsfeedService.updateNewsfeed(id, newsfeedRequestDto, email);
     return new ResponseEntity<>(newsfeedResponseDto, HttpStatus.OK);
   }
@@ -103,7 +110,7 @@ public class NewsfeedController {
       HttpServletRequest request
   ){
     HttpSession session = request.getSession(false);
-    String email = SessionUtil.validateSession(session);
+    String email = session.getAttribute("email").toString();
     newsfeedService.delete(id, email);
     return new ResponseEntity<>("Deleted", HttpStatus.OK);
   }
