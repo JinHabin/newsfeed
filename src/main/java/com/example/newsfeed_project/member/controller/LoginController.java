@@ -46,7 +46,6 @@ public class LoginController {
         } else {
             log.info("로그인 실패 : {}", loginRequestDto.getEmail());
             throw new InvalidInputException(DIFFERENT_EMAIL_PASSWORD);
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호 일치하지 않습니다.");
         }
     }
 
