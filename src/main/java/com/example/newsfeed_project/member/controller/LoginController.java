@@ -1,7 +1,5 @@
 package com.example.newsfeed_project.member.controller;
 
-import com.example.newsfeed_project.exception.InvalidInputException;
-import com.example.newsfeed_project.exception.NoAuthorizedException;
 import com.example.newsfeed_project.member.dto.LoginRequestDto;
 import com.example.newsfeed_project.member.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,9 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static com.example.newsfeed_project.exception.ErrorCode.DIFFERENT_EMAIL_PASSWORD;
-import static com.example.newsfeed_project.exception.ErrorCode.NO_SESSION;
 
 @Slf4j
 @RestController
@@ -39,8 +34,7 @@ public class LoginController {
             return ResponseEntity.status(HttpStatus.OK).body("로그인 성공");
         } else {
             log.info("로그인 실패 : {}", loginRequestDto.getEmail());
-            throw new InvalidInputException(DIFFERENT_EMAIL_PASSWORD);
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호 일치하지 않습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호 일치하지 않습니다.");
         }
     }
 
@@ -53,8 +47,7 @@ public class LoginController {
             return ResponseEntity.status(HttpStatus.OK).body("로그아웃 성공");
         } else {
             log.info("세션 없음 : 로그아웃 실패");
-            throw new NoAuthorizedException(NO_SESSION);
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("현제 로그인 중인게 없습니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("현제 로그인 중인게 없습니다.");
         }
     }
 }
