@@ -1,17 +1,18 @@
-package com.example.newsfeed_project.member.service;
+package com.example.newsfeedproject.member.service;
+
 
 import com.example.newsfeed_project.config.PasswordEncoder;
+import com.example.newsfeed_project.exception.DuplicatedException;
+import com.example.newsfeed_project.exception.InvalidInputException;
+import com.example.newsfeed_project.exception.NotFoundException;
 import com.example.newsfeed_project.member.dto.MemberDto;
 import com.example.newsfeed_project.member.entity.Member;
 import com.example.newsfeed_project.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -28,8 +29,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberDto createMember(MemberDto memberDto) {
-        if (memberRepository.findByEmail(memberDto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+        if (memberRepository.findByEmailIncludingDeleted(memberDto.getEmail()).isPresent()) {
+            throw new DuplicatedException(EMAIL_EXIST); // 이미 존재하는 이메일 에러 처리
         }
 
         memberDto = encryptedPassword(memberDto);
@@ -43,7 +44,7 @@ public class MemberServiceImpl implements MemberService {
     public MemberDto updateMember(Long id, String password, MemberDto memberDto) {
         Member findMemberId = validateId(id);
         if (!passwordEncoder.matches(password, findMemberId.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new InvalidInputException(WRONG_PASSWORD);
         }
 
         findMemberId.updatedMember(memberDto);
@@ -74,8 +75,28 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public void deleteMemberById(Long id) {
-        validateId(id);
-        memberRepository.deleteById(id);
+        Member member = validateId(id);
+        member.markAsDeleted(); // Soft 삭제 처리
+        memberRepository.save(member); // 상태 저장
+    }
+
+    @Override
+    @Transactional
+    public void restoreMember(Long id) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_MEMBER));
+
+        if (!member.isDeleted()) {
+            throw new IllegalArgumentException("회원이 삭제되지 않았습니다.");
+        }
+
+        // 동일한 이메일을 사용하는 활성 회원이 있는지 검사
+        if (memberRepository.findByEmail(member.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("이미 동일한 이메일을 사용하는 회원이 존재합니다.");
+        }
+
+        member.restore();
+        memberRepository.save(member);
     }
 
     @Override
@@ -84,7 +105,12 @@ public class MemberServiceImpl implements MemberService {
         Member member = validateEmail(session.getAttribute("email").toString());
 
         if (!passwordEncoder.matches(oldPassword, member.getPassword())) {
-            throw new IllegalArgumentException("Old password and new password do not match");
+            throw new InvalidInputException(SAME_PASSWORD);
+//            throw new IllegalArgumentException("Old password and new password do not match");
+        }
+
+        if (oldPassword.equals(newPassword)) {
+            throw new IllegalArgumentException("비밀번호가 동일합니다.");
         }
 
         String encodedPassword = passwordEncoder.encode(newPassword);
@@ -108,16 +134,16 @@ public class MemberServiceImpl implements MemberService {
         return false;
     }
 
-
     public Member validateId(Long id) {
         return memberRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+                .filter(member -> !member.isDeleted()) // 삭제된 회원 제외
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_MEMBER));
     }
 
     public Member validateEmail(String email) {
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Member email not found"));
-        return member;
+        return memberRepository.findByEmail(email)
+                .filter(member -> !member.isDeleted()) // 삭제된 회원 제외
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_EMAIL));
     }
 
     private MemberDto encryptedPassword(MemberDto memberDto) {

@@ -14,4 +14,5 @@ public interface MemberService {
     Member validateId(Long id);
     Member validateEmail(String email);
     boolean authenticate(String email, String password);
+    void restoreMember(Long id);
 }

@@ -5,6 +5,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ValidationException extends RuntimeException {
-  private final ErrorCode errorCode;
+public class InternalServerException extends RuntimeException {
+    private final ErrorCode errorCode;
 }
