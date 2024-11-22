@@ -46,6 +46,8 @@ public enum ErrorCode {
   //프로필 본인 조회
   NO_AUTHOR_PROFILE("프로필은 본인만 조회할 수 있습니다.", HttpStatus.UNAUTHORIZED),
 
+  NO_SELF_LIKE("자신이 작성한 게시글과 댓글에 좋아요를 달 수 없습니다.", HttpStatus.UNAUTHORIZED),
+
 
 
   //로그인

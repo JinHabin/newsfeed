@@ -159,20 +159,4 @@ public class FriendServiceImpl implements FriendService {
                 throw new IllegalStateException("지원하지 않는 요청 상태입니다.");
         }
     }
-
-//    private boolean determineApprovalLogic(Member requestFriend, Member responseFriend) {
-//        // 자기 자신에게 친구 요청을 보낼 수 없음
-//        if (requestFriend.getId().equals(responseFriend.getId())) {
-//            throw new IllegalArgumentException("자기 자신에게 친구 요청을 보낼 수 없습니다.");
-//        }
-//
-//        // 이미 친구 관계인지 확인
-//        boolean alreadyFriends = friendRepository.existsByRequestFriendAndResponseFriend(requestFriend, responseFriend);
-//        if (alreadyFriends) {
-//            throw new IllegalArgumentException("이미 친구 관계입니다.");
-//        }
-//
-//        // 기본적으로 승인 상태 반환
-//        return true; // 변경 필요
-//    }
 }

@@ -32,7 +32,6 @@ public class Friend {
     @JoinColumn(name = "response_friend_id")
     private Member responseFriend;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
