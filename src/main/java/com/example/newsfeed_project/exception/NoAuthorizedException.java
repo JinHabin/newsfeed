@@ -6,5 +6,5 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class NoAuthorizedException extends RuntimeException {
-    private final ErrorCode errorCode;
+  private final ErrorCode errorCode;
 }
