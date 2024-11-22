@@ -124,7 +124,6 @@ public class FriendServiceImpl implements FriendService {
 
             FriendDto friendDto = FriendDto.builder()
                     .id(friend.getId())
-                    .requestFriendId(friend.getRequestFriend().getId())
                     .responseFriendId(friend.getResponseFriend().getId())
                     .build();
 
