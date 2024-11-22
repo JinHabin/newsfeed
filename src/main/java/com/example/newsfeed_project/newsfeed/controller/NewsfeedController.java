@@ -42,7 +42,7 @@ public class NewsfeedController {
       HttpServletRequest request
   ) {
     HttpSession session = request.getSession(false);
-    String email = (String) session.getAttribute("email");
+    String email = SessionUtil.validateSession(session);
     NewsfeedResponseDto newsfeedResponseDto = newsfeedService.save(newsfeedRequestDto, email);
     return new ResponseEntity<>(newsfeedResponseDto, HttpStatus.CREATED);
   }
@@ -86,7 +86,7 @@ public class NewsfeedController {
       HttpServletRequest request
   ){
     HttpSession session = request.getSession(false);
-    String email = (String) session.getAttribute("email");
+    String email = SessionUtil.validateSession(session);
     NewsfeedResponseDto newsfeedResponseDto = newsfeedService.updateNewsfeed(id, newsfeedRequestDto, email);
     return new ResponseEntity<>(newsfeedResponseDto, HttpStatus.OK);
   }

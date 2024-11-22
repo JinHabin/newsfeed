@@ -27,7 +27,6 @@ public class NewsfeedLikeServiceImpl implements NewsfeedLikeService {
   @Override
   public LikeResponseDto addLike(String email, long newsfeedId) {
     NewsfeedLike newsfeedLike = checkLike(email, newsfeedId);
-    checkAuthor(newsfeedLike, email);
     if(newsfeedLike.getId() > 0) {
       newsfeedLikeRepository.delete(newsfeedLike);
       return new LikeResponseDto("좋아요 해제");
@@ -40,6 +39,7 @@ public class NewsfeedLikeServiceImpl implements NewsfeedLikeService {
   private NewsfeedLike checkLike(String email, long newsfeedId) {
     Member member = memberService.validateEmail(email);
     Newsfeed newsfeed = newsfeedService.findNewsfeedByIdOrElseThrow(newsfeedId);
+    checkAuthor(newsfeed, email);
     NewsfeedLike newsfeedLike = newsfeedLikeRepository.findByNewsfeedIdAndMemberId(newsfeedId, member.getId());
     if(newsfeedLike == null){
       newsfeedLike = new NewsfeedLike();
@@ -49,8 +49,8 @@ public class NewsfeedLikeServiceImpl implements NewsfeedLikeService {
     return newsfeedLike;
   }
 
-  private void checkAuthor(NewsfeedLike newsfeedLike, String email){
-    if(newsfeedLike.getMember().getEmail().equals(email)){
+  private void checkAuthor(Newsfeed newsfeed, String email){
+    if(newsfeed.getMember().getEmail().equals(email)){
       throw new NoAuthorizedException(NO_SELF_LIKE);
     }
   }
